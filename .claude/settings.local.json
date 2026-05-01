@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(npm run *)",
+      "PowerShell(npm install *)",
+      "PowerShell($resp = Invoke-WebRequest -Uri \"http://localhost:3000\" -UseBasicParsing -TimeoutSec 60; \"STATUS: $\\($resp.StatusCode\\)\"; $resp.Content.Substring\\(0, [Math]::Min\\(800, $resp.Content.Length\\)\\))",
+      "PowerShell($resp = Invoke-WebRequest -Uri \"http://localhost:3000/games/drift\" -UseBasicParsing -TimeoutSec 60; \"STATUS: $\\($resp.StatusCode\\)\")",
+      "PowerShell(Test-Path *)",
+      "PowerShell(winget install *)",
+      "PowerShell(git config *)",
+      "PowerShell(git *)"
+    ]
+  }
+}

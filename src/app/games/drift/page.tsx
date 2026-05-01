@@ -1,8 +1,13 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { motion, useAnimate, AnimatePresence } from "framer-motion";
-import { useRouter } from "next/navigation";
+import { useEffect, useRef } from "react";
+import { motion, useAnimate } from "framer-motion";
+import { GameRunner } from "@/components/GameRunner";
+import {
+  DriftResult,
+  DriftSample,
+  GameTemplate,
+} from "@/lib/game-template";
 
 const DURATION_SECONDS = 30;
 const WAYPOINTS = 8;
@@ -21,113 +26,85 @@ function generateWaypoints(steps: number, maxRadius: number) {
   return { xs, ys };
 }
 
-export default function DriftGame() {
-  const router = useRouter();
-  const [scope, animate] = useAnimate();
-  const [started, setStarted] = useState(false);
-
-  const mousePos = useRef<{ x: number; y: number } | null>(null);
-  const samples = useRef<number[]>([]);
-  const samplingRef = useRef(false);
+function DriftDot({
+  active,
+  dotRef,
+}: {
+  active: boolean;
+  dotRef: React.MutableRefObject<HTMLDivElement | null>;
+}) {
+  const [scope, animate] = useAnimate<HTMLDivElement>();
+  const started = useRef(false);
 
   useEffect(() => {
-    const onMove = (e: MouseEvent) => {
-      mousePos.current = { x: e.clientX, y: e.clientY };
-    };
-    window.addEventListener("mousemove", onMove);
-    return () => {
-      window.removeEventListener("mousemove", onMove);
-      samplingRef.current = false;
-    };
-  }, []);
+    dotRef.current = scope.current;
+  }, [scope, dotRef]);
 
-  const handleStart = async () => {
-    if (started) return;
-    setStarted(true);
-
+  useEffect(() => {
+    if (!active || started.current || !scope.current) return;
+    started.current = true;
     const maxRadius = Math.min(window.innerWidth, window.innerHeight) * 0.35;
     const { xs, ys } = generateWaypoints(WAYPOINTS, maxRadius);
     const times = xs.map((_, i) => i / (xs.length - 1));
-    const easeArr = Array(xs.length - 1).fill("easeInOut");
-
-    samplingRef.current = true;
-    const sampleLoop = () => {
-      if (!samplingRef.current) return;
-      const el = scope.current as HTMLElement | null;
-      if (el && mousePos.current) {
-        const rect = el.getBoundingClientRect();
-        const dotX = rect.left + rect.width / 2;
-        const dotY = rect.top + rect.height / 2;
-        const dx = dotX - mousePos.current.x;
-        const dy = dotY - mousePos.current.y;
-        samples.current.push(Math.hypot(dx, dy));
-      }
-      requestAnimationFrame(sampleLoop);
-    };
-    requestAnimationFrame(sampleLoop);
-
-    await animate(
+    const ease = Array(xs.length - 1).fill("easeInOut");
+    animate(
       scope.current,
       { x: xs, y: ys },
-      { duration: DURATION_SECONDS, times, ease: easeArr }
+      { duration: DURATION_SECONDS, times, ease },
     );
+  }, [active, animate, scope]);
 
-    samplingRef.current = false;
+  return (
+    <motion.div
+      ref={scope}
+      aria-hidden
+      style={{
+        width: 14,
+        height: 14,
+        borderRadius: "50%",
+        background: "#e0dfdb",
+        boxShadow:
+          "0 0 24px 6px rgba(224,223,219,0.45), 0 0 64px 14px rgba(224,223,219,0.18)",
+      }}
+    />
+  );
+}
 
-    const arr = samples.current;
-    if (arr.length > 0) {
-      const mean = arr.reduce((a, b) => a + b, 0) / arr.length;
-      const variance =
-        arr.reduce((a, b) => a + (b - mean) ** 2, 0) / arr.length;
-      localStorage.setItem(
-        "tide_drift_result",
-        JSON.stringify({ meanDistance: mean, distanceVariance: variance })
-      );
-    }
+export default function DriftPage() {
+  const dotRef = useRef<HTMLDivElement | null>(null);
 
-    router.push("/games/periphery");
+  const template: GameTemplate<DriftSample, DriftResult> = {
+    name: "drift",
+    setup: {
+      title: "The Drift",
+      description: "Follow the light. Or don't. Just notice.",
+    },
+    play: {
+      durationSeconds: DURATION_SECONDS,
+      sample: ({ mouse }) => {
+        const el = dotRef.current;
+        if (!el || !mouse) return null;
+        const r = el.getBoundingClientRect();
+        const dx = r.left + r.width / 2 - mouse.x;
+        const dy = r.top + r.height / 2 - mouse.y;
+        return { distance: Math.hypot(dx, dy) };
+      },
+    },
+    end: {
+      next: "periphery",
+      computeResult: (samples) => {
+        const ds = samples.map((s) => s.distance);
+        const n = Math.max(ds.length, 1);
+        const mean = ds.reduce((a, b) => a + b, 0) / n;
+        const variance = ds.reduce((a, b) => a + (b - mean) ** 2, 0) / n;
+        return { meanDistance: mean, distanceVariance: variance };
+      },
+    },
   };
 
   return (
-    <div className="relative min-h-screen bg-[#0a0e14] overflow-hidden flex items-center justify-center cursor-none">
-      <motion.div
-        ref={scope}
-        aria-hidden
-        style={{
-          width: 14,
-          height: 14,
-          borderRadius: "50%",
-          background: "#e0dfdb",
-          boxShadow:
-            "0 0 24px 6px rgba(224,223,219,0.45), 0 0 64px 14px rgba(224,223,219,0.18)",
-        }}
-      />
-
-      <AnimatePresence>
-        {!started && (
-          <motion.div
-            key="intro"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 1.6, ease: "easeInOut" }}
-            className="absolute bottom-[18%] flex flex-col items-center gap-8 text-center cursor-auto"
-          >
-            <h1
-              className="font-[family-name:var(--font-eb-garamond)] text-4xl sm:text-5xl text-[#e0dfdb] tracking-wide"
-              style={{ fontWeight: 500 }}
-            >
-              The Drift
-            </h1>
-            <button
-              onClick={handleStart}
-              className="px-10 py-3 border border-[#e0dfdb]/30 rounded-sm text-[#e0dfdb]/80 text-sm tracking-[0.3em] uppercase transition-all duration-700 ease-in-out hover:border-[#e0dfdb]/60 hover:text-[#e0dfdb] hover:shadow-[0_0_24px_rgba(224,223,219,0.18)] hover:bg-[#e0dfdb]/[0.03]"
-            >
-              Start
-            </button>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
+    <GameRunner template={template}>
+      {({ phase }) => <DriftDot active={phase === "play"} dotRef={dotRef} />}
+    </GameRunner>
   );
 }

@@ -8,7 +8,14 @@
       "PowerShell(Test-Path *)",
       "PowerShell(winget install *)",
       "PowerShell(git config *)",
-      "PowerShell(git *)"
+      "PowerShell(git *)",
+      "PowerShell(git push *)",
+      "PowerShell(npx tsc --noEmit 2>&1 | Select-Object -First 30)",
+      "PowerShell(npx tsc --noEmit 2>&1)",
+      "PowerShell($r1 = Invoke-WebRequest -Uri \"http://localhost:3000/games/periphery\" -UseBasicParsing -TimeoutSec 60; \"PERIPHERY: $\\($r1.StatusCode\\)\"; $r2 = Invoke-WebRequest -Uri \"http://localhost:3000/games/periphery/quiz\" -UseBasicParsing -TimeoutSec 60; \"QUIZ: $\\($r2.StatusCode\\)\")",
+      "PowerShell($r = Invoke-WebRequest -Uri \"http://localhost:3000/games/periphery/quiz\" -UseBasicParsing -TimeoutSec 60; \"STATUS: $\\($r.StatusCode\\)\")",
+      "PowerShell($r = Invoke-WebRequest -Uri \"http://localhost:3000/games/pulse\" -UseBasicParsing -TimeoutSec 60; \"PULSE: $\\($r.StatusCode\\)\")",
+      "PowerShell(git status *)"
     ]
   }
 }

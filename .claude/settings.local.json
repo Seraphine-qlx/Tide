@@ -15,7 +15,16 @@
       "PowerShell($r1 = Invoke-WebRequest -Uri \"http://localhost:3000/games/periphery\" -UseBasicParsing -TimeoutSec 60; \"PERIPHERY: $\\($r1.StatusCode\\)\"; $r2 = Invoke-WebRequest -Uri \"http://localhost:3000/games/periphery/quiz\" -UseBasicParsing -TimeoutSec 60; \"QUIZ: $\\($r2.StatusCode\\)\")",
       "PowerShell($r = Invoke-WebRequest -Uri \"http://localhost:3000/games/periphery/quiz\" -UseBasicParsing -TimeoutSec 60; \"STATUS: $\\($r.StatusCode\\)\")",
       "PowerShell($r = Invoke-WebRequest -Uri \"http://localhost:3000/games/pulse\" -UseBasicParsing -TimeoutSec 60; \"PULSE: $\\($r.StatusCode\\)\")",
-      "PowerShell(git status *)"
+      "PowerShell(git status *)",
+      "PowerShell($r = Invoke-WebRequest -Uri \"http://localhost:3000/games/glimpse\" -UseBasicParsing -TimeoutSec 60; \"GLIMPSE: $\\($r.StatusCode\\)\")",
+      "PowerShell($r1 = Invoke-WebRequest -Uri \"http://localhost:3000/games/current\" -UseBasicParsing -TimeoutSec 60; \"CURRENT: $\\($r1.StatusCode\\)\"; $r2 = Invoke-WebRequest -Uri \"http://localhost:3000/result\" -UseBasicParsing -TimeoutSec 60; \"RESULT: $\\($r2.StatusCode\\)\")",
+      "PowerShell(npx next build 2>&1 | Select-Object -Last 60)",
+      "PowerShell($r = Invoke-WebRequest -Uri \"http://localhost:3000/games/current\" -UseBasicParsing -TimeoutSec 60; \"STATUS: $\\($r.StatusCode\\)\"; \"---\"; Get-Content \"C:\\\\Users\\\\瞿丽璇\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--Users-----Projects-tide\\\\e71a0ea0-989d-4705-bb23-4dcb97dba3ef\\\\tasks\\\\bzml35udy.output\" -Tail 6)",
+      "PowerShell(\"--- glimpse first 3 lines ---\"; Get-Content \"src\\\\app\\\\games\\\\glimpse\\\\page.tsx\" -TotalCount 3; \"--- current first 3 lines ---\"; Get-Content \"src\\\\app\\\\games\\\\current\\\\page.tsx\" -TotalCount 3; \"--- glimpse export ---\"; Select-String -Path \"src\\\\app\\\\games\\\\glimpse\\\\page.tsx\" -Pattern \"^export default\"; \"--- current export ---\"; Select-String -Path \"src\\\\app\\\\games\\\\current\\\\page.tsx\" -Pattern \"^export default\")",
+      "PowerShell(Get-Process *)",
+      "PowerShell(Get-CimInstance *)",
+      "PowerShell(Remove-Item *)",
+      "PowerShell($r1 = Invoke-WebRequest -Uri \"http://localhost:3000/games/glimpse\" -UseBasicParsing -TimeoutSec 60; \"GLIMPSE: $\\($r1.StatusCode\\)\"; $r2 = Invoke-WebRequest -Uri \"http://localhost:3000/games/current\" -UseBasicParsing -TimeoutSec 60; \"CURRENT: $\\($r2.StatusCode\\)\"; \"---\"; Get-Content \"C:\\\\Users\\\\瞿丽璇\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--Users-----Projects-tide\\\\e71a0ea0-989d-4705-bb23-4dcb97dba3ef\\\\tasks\\\\bvajslflt.output\" -Tail 10)"
     ]
   }
 }

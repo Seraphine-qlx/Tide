@@ -1,6 +1,6 @@
 "use client";
 
-import { ReactNode, useEffect, useRef, useState } from "react";
+import { ReactNode, useCallback, useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import {
@@ -13,7 +13,14 @@ import {
 
 interface GameRunnerProps<TSample, TResult> {
   template: GameTemplate<TSample, TResult>;
-  children: (ctx: { phase: GamePhase; progress: number }) => ReactNode;
+  children: (ctx: {
+    phase: GamePhase;
+    progress: number;
+    /** End the game early; computes result and navigates as if the timer fired. */
+    end: () => void;
+    /** Append a sample directly (event-driven games that don't use per-frame `sample`). */
+    pushSample: (sample: TSample) => void;
+  }) => ReactNode;
   /** Cursor visibility for the play surface. Defaults to "none" so games that
    *  feel best with the cursor hidden (Drift, Periphery) stay that way. */
   cursor?: "none" | "auto";
@@ -32,6 +39,10 @@ export function GameRunner<TSample, TResult>({
   const samples = useRef<TSample[]>([]);
   const sampling = useRef(false);
 
+  // Latest template accessible from stable callbacks below without re-creating them on every render.
+  const templateRef = useRef(template);
+  templateRef.current = template;
+
   useEffect(() => {
     const onMove = (e: MouseEvent) => {
       mousePos.current = { x: e.clientX, y: e.clientY };
@@ -43,12 +54,35 @@ export function GameRunner<TSample, TResult>({
     };
   }, []);
 
+  const finish = useCallback(() => {
+    setPhase("end");
+    const t = templateRef.current;
+    const result = t.end.computeResult(samples.current);
+    try {
+      localStorage.setItem(storageKey(t.name), JSON.stringify(result));
+    } catch {
+      // localStorage may be unavailable (private mode); skip persistence.
+    }
+    router.push(nextRoute(t.end.next));
+  }, [router]);
+
+  const end = useCallback(() => {
+    if (!sampling.current) return;
+    sampling.current = false;
+    finish();
+  }, [finish]);
+
+  const pushSample = useCallback((s: TSample) => {
+    if (!sampling.current) return;
+    samples.current.push(s);
+  }, []);
+
   const handleStart = () => {
     if (phase !== "setup") return;
     setPhase("play");
 
     const startedAt = performance.now();
-    const durationMs = template.play.durationSeconds * 1000;
+    const durationMs = templateRef.current.play.durationSeconds * 1000;
     sampling.current = true;
 
     const tick = (now: number) => {
@@ -63,7 +97,7 @@ export function GameRunner<TSample, TResult>({
         mouse: mousePos.current,
         now,
       };
-      const s = template.play.sample(ctx);
+      const s = templateRef.current.play.sample(ctx);
       if (s != null) samples.current.push(s);
 
       if (elapsedMs >= durationMs) {
@@ -76,24 +110,13 @@ export function GameRunner<TSample, TResult>({
     requestAnimationFrame(tick);
   };
 
-  const finish = () => {
-    setPhase("end");
-    const result = template.end.computeResult(samples.current);
-    try {
-      localStorage.setItem(storageKey(template.name), JSON.stringify(result));
-    } catch {
-      // localStorage may be unavailable (private mode); skip persistence.
-    }
-    router.push(nextRoute(template.end.next));
-  };
-
   return (
     <div
       className={`relative min-h-screen bg-[#0a0e14] overflow-hidden flex items-center justify-center ${
         cursor === "auto" ? "cursor-auto" : "cursor-none"
       }`}
     >
-      {children({ phase, progress })}
+      {children({ phase, progress, end, pushSample })}
 
       <AnimatePresence>
         {phase === "setup" && (

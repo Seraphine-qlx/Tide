@@ -67,6 +67,9 @@ export function storageKey(name: string): string {
 }
 
 export function nextRoute(next: string): string {
+  // A leading slash means the destination lives outside the games tree
+  // (e.g. the final `/result` page). Otherwise it's a sibling under /games/.
+  if (next.startsWith("/")) return next;
   return `${GAMES_ROUTE_PREFIX}${next}`;
 }
 
@@ -116,3 +119,29 @@ export interface PulseResult {
 }
 
 export type PulseTemplate = GameTemplate<PulseSample, PulseResult>;
+
+export type GlimpseChoice = "whole" | "detail" | "mood" | "structure";
+export type GlimpseResult = Record<GlimpseChoice, number>;
+export type GlimpseTemplate = GameTemplate<GlimpseChoice, GlimpseResult>;
+
+export type CurrentType =
+  | "poem"
+  | "color"
+  | "shape"
+  | "symbol"
+  | "line"
+  | "circle";
+
+export interface CurrentSample {
+  type: CurrentType;
+  durationMs: number;
+}
+
+export interface CurrentResult {
+  totalDwell: number;
+  switches: number;
+  longestDwell: number;
+  preferredType: CurrentType | null;
+}
+
+export type CurrentTemplate = GameTemplate<CurrentSample, CurrentResult>;

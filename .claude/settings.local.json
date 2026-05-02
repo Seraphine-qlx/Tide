@@ -24,7 +24,11 @@
       "PowerShell(Get-Process *)",
       "PowerShell(Get-CimInstance *)",
       "PowerShell(Remove-Item *)",
-      "PowerShell($r1 = Invoke-WebRequest -Uri \"http://localhost:3000/games/glimpse\" -UseBasicParsing -TimeoutSec 60; \"GLIMPSE: $\\($r1.StatusCode\\)\"; $r2 = Invoke-WebRequest -Uri \"http://localhost:3000/games/current\" -UseBasicParsing -TimeoutSec 60; \"CURRENT: $\\($r2.StatusCode\\)\"; \"---\"; Get-Content \"C:\\\\Users\\\\瞿丽璇\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--Users-----Projects-tide\\\\e71a0ea0-989d-4705-bb23-4dcb97dba3ef\\\\tasks\\\\bvajslflt.output\" -Tail 10)"
+      "PowerShell($r1 = Invoke-WebRequest -Uri \"http://localhost:3000/games/glimpse\" -UseBasicParsing -TimeoutSec 60; \"GLIMPSE: $\\($r1.StatusCode\\)\"; $r2 = Invoke-WebRequest -Uri \"http://localhost:3000/games/current\" -UseBasicParsing -TimeoutSec 60; \"CURRENT: $\\($r2.StatusCode\\)\"; \"---\"; Get-Content \"C:\\\\Users\\\\瞿丽璇\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--Users-----Projects-tide\\\\e71a0ea0-989d-4705-bb23-4dcb97dba3ef\\\\tasks\\\\bvajslflt.output\" -Tail 10)",
+      "PowerShell(Get-Command *)",
+      "PowerShell(npx -y vercel@latest whoami 2>&1)",
+      "PowerShell(npx -y tsx src/lib/scoring.ts 2>&1)",
+      "PowerShell($r1 = Invoke-WebRequest -Uri \"http://localhost:3000/result\" -UseBasicParsing -TimeoutSec 60; \"RESULT: $\\($r1.StatusCode\\)\"; $r2 = Invoke-WebRequest -Uri \"http://localhost:3000/meditation\" -UseBasicParsing -TimeoutSec 60; \"MEDITATION: $\\($r2.StatusCode\\)\")"
     ]
   }
 }

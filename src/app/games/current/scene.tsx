@@ -197,9 +197,11 @@ const TYPES: CurrentType[] = [
 interface CurrentSceneProps {
   phase: GamePhase;
   onSample: (sample: { type: CurrentType; durationMs: number }) => void;
+  /** Notify on hover transitions for audio feedback. `hovering=true` on enter, `false` on leave. */
+  onHover?: (type: CurrentType, hovering: boolean) => void;
 }
 
-export function CurrentScene({ phase, onSample }: CurrentSceneProps) {
+export function CurrentScene({ phase, onSample, onHover }: CurrentSceneProps) {
   const [waypoints] = useState<Record<CurrentType, Waypoints>>(() => ({
     poem: generateWaypoints(),
     color: generateWaypoints(),
@@ -216,11 +218,13 @@ export function CurrentScene({ phase, onSample }: CurrentSceneProps) {
   const handleHoverStart = (type: CurrentType) => {
     if (phaseRef.current !== "play") return;
     hoverStart.current = { type, t: performance.now() };
+    onHover?.(type, true);
   };
 
   const handleHoverEnd = (type: CurrentType) => {
     const start = hoverStart.current;
     hoverStart.current = null;
+    onHover?.(type, false);
     if (!start || phaseRef.current !== "play") return;
     const durationMs = performance.now() - start.t;
     if (durationMs >= MIN_DWELL_MS) {

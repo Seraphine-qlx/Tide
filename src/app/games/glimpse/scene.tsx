@@ -153,12 +153,14 @@ interface GlimpseSceneProps {
   phase: GamePhase;
   onChoice: (c: GlimpseChoice) => void;
   onComplete: () => void;
+  onImageStart?: (index: number) => void;
 }
 
 export function GlimpseScene({
   phase,
   onChoice,
   onComplete,
+  onImageStart,
 }: GlimpseSceneProps) {
   const [imageIndex, setImageIndex] = useState(0);
   const [mode, setMode] = useState<"image" | "options">("image");
@@ -171,9 +173,10 @@ export function GlimpseScene({
 
   useEffect(() => {
     if (phase !== "play" || mode !== "image") return;
+    onImageStart?.(imageIndex);
     const t = setTimeout(() => setMode("options"), FLASH_MS);
     return () => clearTimeout(t);
-  }, [phase, mode, imageIndex]);
+  }, [phase, mode, imageIndex, onImageStart]);
 
   if (phase === "setup") return null;
 

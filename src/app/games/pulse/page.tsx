@@ -55,7 +55,7 @@ export default function PulsePage() {
           oscillator: { type: "triangle" },
           envelope: { attack: 0.01, decay: 0.1, sustain: 0.4, release: 0.6 },
         }).toDestination();
-        synth.volume.value = -22;
+        synth.volume.value = -28;
         synthRef.current = synth;
       } catch {
         // ignore

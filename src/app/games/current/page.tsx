@@ -32,7 +32,7 @@ const NOTES: Record<CurrentType, string> = {
 
 /** Effective silence — Tone.js handles -Infinity but ramping toward it can stall. */
 const SILENT_DB = -80;
-const ACTIVE_DB = -30;
+const ACTIVE_DB = -36;
 const MASTER_DB = -6;
 
 export default function CurrentPage() {

@@ -55,7 +55,7 @@ export default function PeripheryPage() {
           oscillator: { type: "sine" },
           envelope: { attack: 2, decay: 0.4, sustain: 0.7, release: 3 },
         }).toDestination();
-        poly.volume.value = -38;
+        poly.volume.value = -42;
         poly.triggerAttack(["A2", "C3", "E3"]);
         polyRef.current = poly;
       } catch {

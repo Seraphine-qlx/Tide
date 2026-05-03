@@ -36,7 +36,7 @@ export default function GlimpsePage() {
           oscillator: { type: "sine" },
           envelope: { attack: 0.3, decay: 0.4, sustain: 0.6, release: 1.5 },
         }).toDestination();
-        synth.volume.value = -28;
+        synth.volume.value = -32;
         synthRef.current = synth;
       } catch {
         // ignore

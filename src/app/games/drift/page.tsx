@@ -78,6 +78,7 @@ export default function DriftPage() {
   const distanceRef = useRef<number>(Number.POSITIVE_INFINITY);
   const synthRef = useRef<Tone.Synth | null>(null);
   const vibratoRef = useRef<Tone.Vibrato | null>(null);
+  const filterRef = useRef<Tone.Filter | null>(null);
   const rafIdRef = useRef<number>(0);
 
   useEffect(() => {
@@ -87,6 +88,7 @@ export default function DriftPage() {
         synthRef.current?.triggerRelease();
         synthRef.current?.dispose();
         vibratoRef.current?.dispose();
+        filterRef.current?.dispose();
       } catch {
         // ignore
       }
@@ -98,18 +100,23 @@ export default function DriftPage() {
       console.log("Tone started successfully");
       Tone.getDestination().volume.value = MASTER_DB;
       try {
+        const filter = new Tone.Filter({
+          frequency: 400,
+          type: "lowpass",
+        }).toDestination();
         const vibrato = new Tone.Vibrato({
           frequency: 0.3,
           depth: 0.1,
-        }).toDestination();
+        }).connect(filter);
         const synth = new Tone.Synth({
           oscillator: { type: "sine" },
           envelope: { attack: 1.5, decay: 0, sustain: 1, release: 1.5 },
         }).connect(vibrato);
-        synth.volume.value = -32;
+        synth.volume.value = -42;
         synth.triggerAttack(110);
         synthRef.current = synth;
         vibratoRef.current = vibrato;
+        filterRef.current = filter;
 
         let lastZone: "near" | "far" | null = null;
         const tick = () => {
@@ -119,7 +126,7 @@ export default function DriftPage() {
               distanceRef.current < NEAR_DISTANCE_PX ? "near" : "far";
             if (zone !== lastZone) {
               try {
-                s.volume.rampTo(zone === "near" ? -22 : -32, 0.5);
+                s.volume.rampTo(zone === "near" ? -32 : -42, 0.5);
               } catch {
                 // ignore
               }

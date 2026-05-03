@@ -1,7 +1,8 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import * as Tone from "tone";
 import { GameRunner } from "@/components/GameRunner";
 import {
   GameTemplate,
@@ -11,18 +12,71 @@ import {
 
 const DURATION_SECONDS = 30;
 const CIRCLE_PX = 200;
+const MASTER_DB = -6;
+
+const C3_HZ = Tone.Frequency("C3").toFrequency();
+const C3_MIDI = Tone.Frequency("C3").toMidi();
+const C4_MIDI = Tone.Frequency("C4").toMidi();
+
+/** Map an inter-tap interval (ms) to a pitch in Hz. 200 ms → C4, 2000 ms → C3. */
+function intervalToHz(ms: number | null): number {
+  if (ms === null) return C3_HZ;
+  const clamped = Math.max(200, Math.min(2000, ms));
+  const t = (clamped - 200) / (2000 - 200);
+  // Interpolate in midi space so the pitch falls perceptually linearly.
+  const midi = C4_MIDI + (C3_MIDI - C4_MIDI) * t;
+  return Tone.Frequency(midi, "midi").toFrequency();
+}
 
 export default function PulsePage() {
-  // Taps land in this queue from click events; sample() drains one per frame
-  // so the GameRunner samples buffer ends up holding the timestamps.
   const tapQueue = useRef<number[]>([]);
   const activeRef = useRef(false);
   const [ripples, setRipples] = useState<number[]>([]);
+
+  const synthRef = useRef<Tone.Synth | null>(null);
+  const lastTapRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    return () => {
+      try {
+        synthRef.current?.dispose();
+      } catch {
+        // ignore
+      }
+    };
+  }, []);
+
+  const handleStart = () => {
+    Tone.start().then(() => {
+      console.log("Tone started successfully");
+      Tone.getDestination().volume.value = MASTER_DB;
+      try {
+        const synth = new Tone.Synth({
+          oscillator: { type: "triangle" },
+          envelope: { attack: 0.01, decay: 0.1, sustain: 0.4, release: 0.6 },
+        }).toDestination();
+        synth.volume.value = -22;
+        synthRef.current = synth;
+      } catch {
+        // ignore
+      }
+    });
+  };
 
   const handleTap = () => {
     if (!activeRef.current) return;
     const ts = performance.now();
     tapQueue.current.push(ts);
+
+    const interval = lastTapRef.current === null ? null : ts - lastTapRef.current;
+    const hz = intervalToHz(interval);
+    lastTapRef.current = ts;
+    try {
+      synthRef.current?.triggerAttackRelease(hz, 0.6);
+    } catch {
+      // ignore
+    }
+
     const id = ts + Math.random();
     setRipples((prev) => [...prev, id]);
     setTimeout(() => {
@@ -38,6 +92,7 @@ export default function PulsePage() {
     },
     play: {
       durationSeconds: DURATION_SECONDS,
+      instruction: "Tap whenever you feel moved to.",
       sample: () => {
         if (tapQueue.current.length > 0) {
           return tapQueue.current.shift()!;
@@ -66,7 +121,7 @@ export default function PulsePage() {
   };
 
   return (
-    <GameRunner template={template} cursor="auto">
+    <GameRunner template={template} cursor="auto" onStart={handleStart}>
       {({ phase, progress }) => {
         activeRef.current = phase === "play";
         const remaining = Math.max(

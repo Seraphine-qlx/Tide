@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { motion, useAnimate } from "framer-motion";
+import * as Tone from "tone";
 import { GameRunner } from "@/components/GameRunner";
 import {
   DriftResult,
@@ -11,6 +12,8 @@ import {
 
 const DURATION_SECONDS = 30;
 const WAYPOINTS = 8;
+const NEAR_DISTANCE_PX = 80;
+const MASTER_DB = -6;
 
 function generateWaypoints(steps: number, maxRadius: number) {
   const xs: number[] = [0];
@@ -72,6 +75,65 @@ function DriftDot({
 
 export default function DriftPage() {
   const dotRef = useRef<HTMLDivElement | null>(null);
+  const distanceRef = useRef<number>(Number.POSITIVE_INFINITY);
+  const synthRef = useRef<Tone.Synth | null>(null);
+  const vibratoRef = useRef<Tone.Vibrato | null>(null);
+  const rafIdRef = useRef<number>(0);
+
+  useEffect(() => {
+    return () => {
+      if (rafIdRef.current) cancelAnimationFrame(rafIdRef.current);
+      try {
+        synthRef.current?.triggerRelease();
+        synthRef.current?.dispose();
+        vibratoRef.current?.dispose();
+      } catch {
+        // ignore
+      }
+    };
+  }, []);
+
+  const handleStart = () => {
+    Tone.start().then(() => {
+      console.log("Tone started successfully");
+      Tone.getDestination().volume.value = MASTER_DB;
+      try {
+        const vibrato = new Tone.Vibrato({
+          frequency: 0.3,
+          depth: 0.1,
+        }).toDestination();
+        const synth = new Tone.Synth({
+          oscillator: { type: "sine" },
+          envelope: { attack: 1.5, decay: 0, sustain: 1, release: 1.5 },
+        }).connect(vibrato);
+        synth.volume.value = -32;
+        synth.triggerAttack(110);
+        synthRef.current = synth;
+        vibratoRef.current = vibrato;
+
+        let lastZone: "near" | "far" | null = null;
+        const tick = () => {
+          const s = synthRef.current;
+          if (s) {
+            const zone: "near" | "far" =
+              distanceRef.current < NEAR_DISTANCE_PX ? "near" : "far";
+            if (zone !== lastZone) {
+              try {
+                s.volume.rampTo(zone === "near" ? -22 : -32, 0.5);
+              } catch {
+                // ignore
+              }
+              lastZone = zone;
+            }
+          }
+          rafIdRef.current = requestAnimationFrame(tick);
+        };
+        rafIdRef.current = requestAnimationFrame(tick);
+      } catch {
+        // ignore
+      }
+    });
+  };
 
   const template: GameTemplate<DriftSample, DriftResult> = {
     name: "drift",
@@ -81,13 +143,16 @@ export default function DriftPage() {
     },
     play: {
       durationSeconds: DURATION_SECONDS,
+      instruction: "Follow the light.",
       sample: ({ mouse }) => {
         const el = dotRef.current;
         if (!el || !mouse) return null;
         const r = el.getBoundingClientRect();
         const dx = r.left + r.width / 2 - mouse.x;
         const dy = r.top + r.height / 2 - mouse.y;
-        return { distance: Math.hypot(dx, dy) };
+        const distance = Math.hypot(dx, dy);
+        distanceRef.current = distance;
+        return { distance };
       },
     },
     end: {
@@ -103,7 +168,11 @@ export default function DriftPage() {
   };
 
   return (
-    <GameRunner template={template}>
+    <GameRunner
+      template={template}
+      cursor="crosshair"
+      onStart={handleStart}
+    >
       {({ phase }) => <DriftDot active={phase === "play"} dotRef={dotRef} />}
     </GameRunner>
   );

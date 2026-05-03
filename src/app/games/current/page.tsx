@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect, useRef } from "react";
+import * as Tone from "tone";
 import { GameRunner } from "@/components/GameRunner";
 import {
   CurrentResult,
@@ -19,7 +21,73 @@ const TYPES: CurrentType[] = [
   "circle",
 ];
 
+const NOTES: Record<CurrentType, string> = {
+  poem: "C3",
+  color: "E3",
+  shape: "G3",
+  symbol: "B3",
+  line: "D4",
+  circle: "F4",
+};
+
+/** Effective silence — Tone.js handles -Infinity but ramping toward it can stall. */
+const SILENT_DB = -80;
+const ACTIVE_DB = -30;
+const MASTER_DB = -6;
+
 export default function CurrentPage() {
+  const synthsRef = useRef<Partial<Record<CurrentType, Tone.Synth>>>({});
+
+  useEffect(() => {
+    return () => {
+      const synths = synthsRef.current;
+      try {
+        for (const type of TYPES) {
+          synths[type]?.triggerRelease();
+          synths[type]?.dispose();
+        }
+      } catch {
+        // ignore
+      }
+      synthsRef.current = {};
+    };
+  }, []);
+
+  const handleStart = () => {
+    Tone.start().then(() => {
+      console.log("Tone started successfully");
+      Tone.getDestination().volume.value = MASTER_DB;
+      try {
+        const synths: Partial<Record<CurrentType, Tone.Synth>> = {};
+        for (const type of TYPES) {
+          const synth = new Tone.Synth({
+            oscillator: { type: "sine" },
+            envelope: { attack: 0.4, decay: 0.2, sustain: 1, release: 0.6 },
+          }).toDestination();
+          synth.volume.value = SILENT_DB;
+          synth.triggerAttack(NOTES[type]);
+          synths[type] = synth;
+        }
+        synthsRef.current = synths;
+      } catch {
+        // ignore
+      }
+    });
+  };
+
+  const handleHover = (type: CurrentType, hovering: boolean) => {
+    const synth = synthsRef.current[type];
+    if (!synth) return;
+    try {
+      synth.volume.rampTo(
+        hovering ? ACTIVE_DB : SILENT_DB,
+        hovering ? 0.4 : 0.6,
+      );
+    } catch {
+      // ignore
+    }
+  };
+
   const template: GameTemplate<CurrentSample, CurrentResult> = {
     name: "current",
     setup: {
@@ -28,7 +96,7 @@ export default function CurrentPage() {
     },
     play: {
       durationSeconds: DURATION_SECONDS,
-      // Event-driven: hover sessions are pushed via pushSample from the scene.
+      instruction: "Rest your cursor on whatever catches your eye.",
       sample: () => null,
     },
     end: {
@@ -66,7 +134,7 @@ export default function CurrentPage() {
   };
 
   return (
-    <GameRunner template={template} cursor="auto">
+    <GameRunner template={template} cursor="auto" onStart={handleStart}>
       {({ phase, progress, pushSample }) => {
         const remaining = Math.max(
           0,
@@ -74,7 +142,11 @@ export default function CurrentPage() {
         );
         return (
           <>
-            <CurrentScene phase={phase} onSample={pushSample} />
+            <CurrentScene
+              phase={phase}
+              onSample={pushSample}
+              onHover={handleHover}
+            />
             {phase === "play" && (
               <div className="pointer-events-none absolute bottom-6 right-8 text-xs text-[#e0dfdb]/30 tracking-[0.3em] font-[family-name:var(--font-eb-garamond)]">
                 {String(remaining).padStart(2, "0")}

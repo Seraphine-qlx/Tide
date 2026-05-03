@@ -75,6 +75,15 @@ When I ask for something:
 4. If you encounter ambiguity, ask one focused question rather than guessing.
 5. If you discover a problem with an earlier decision, surface it. Don’t silently work around
 it.
+Before every commit and push:
+1. Run git status to see all modified and untracked files
+2. For each modified file NOT in the planned commit, explicitly confirm it is intentionally
+excluded and explain why
+3. Never push code that depends on local changes that haven’t been committed yet — if
+page.tsx calls a prop, the component defining that prop must be in the same or earlier
+commit
+This prevents the “local-remote drift” bug where pushed code depends on unpushed type
+definitions or component changes.
 Development workflow
 Run dev server: npm run dev
 Type check: npx tsc --noEmit

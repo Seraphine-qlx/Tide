@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import {
   GameData,
@@ -123,6 +124,7 @@ function loadGameData(): GameData | null {
 }
 
 export default function ResultPage() {
+  const router = useRouter();
   const [status, setStatus] = useState<LoadStatus>("loading");
   const [result, setResult] = useState<ScoreResult | null>(null);
 
@@ -135,6 +137,17 @@ export default function ResultPage() {
     setResult(calculateType(data));
     setStatus("ready");
   }, []);
+
+  const handlePlayAgain = () => {
+    try {
+      for (const key of Object.values(KEYS)) {
+        localStorage.removeItem(key);
+      }
+    } catch {
+      // ignore — clearing is best-effort
+    }
+    router.push("/");
+  };
 
   if (status === "loading") {
     return <div className="min-h-screen bg-[#0a0e14]" />;
@@ -231,13 +244,19 @@ export default function ResultPage() {
           })}
         </div>
 
-        <div className="flex justify-center">
+        <div className="flex flex-col items-center gap-6">
           <Link
             href="/meditation"
             className="px-10 py-3 border border-[#e0dfdb]/30 rounded-sm text-[#e0dfdb]/80 text-sm tracking-[0.3em] uppercase transition-all duration-700 ease-in-out hover:border-[#e0dfdb]/60 hover:text-[#e0dfdb] hover:shadow-[0_0_24px_rgba(224,223,219,0.18)] hover:bg-[#e0dfdb]/[0.03]"
           >
             Continue
           </Link>
+          <button
+            onClick={handlePlayAgain}
+            className="text-xs tracking-[0.3em] uppercase text-[#e0dfdb]/40 hover:text-[#e0dfdb]/80 transition-opacity duration-500 cursor-pointer focus:outline-none"
+          >
+            Play again
+          </button>
         </div>
       </motion.div>
     </div>

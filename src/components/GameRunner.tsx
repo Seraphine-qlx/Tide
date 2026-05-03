@@ -21,19 +21,31 @@ interface GameRunnerProps<TSample, TResult> {
     /** Append a sample directly (event-driven games that don't use per-frame `sample`). */
     pushSample: (sample: TSample) => void;
   }) => ReactNode;
-  /** Cursor visibility for the play surface. Defaults to "none" so games that
-   *  feel best with the cursor hidden (Drift, Periphery) stay that way. */
-  cursor?: "none" | "auto";
+  /** Cursor for the play surface. Defaults to "none" — games that need the
+   *  cursor visible (Pulse, Glimpse, Current) opt into "auto", and Drift uses
+   *  "crosshair" so the user always knows where their pointer is. */
+  cursor?: "none" | "auto" | "crosshair";
+  /** Fires synchronously inside the Start click handler — use this to call
+   *  `Tone.start()` or any other API that requires a user-gesture context. */
+  onStart?: () => void;
 }
+
+const CURSOR_CLASS: Record<NonNullable<GameRunnerProps<unknown, unknown>["cursor"]>, string> = {
+  none: "cursor-none",
+  auto: "cursor-auto",
+  crosshair: "cursor-crosshair",
+};
 
 export function GameRunner<TSample, TResult>({
   template,
   children,
   cursor = "none",
+  onStart,
 }: GameRunnerProps<TSample, TResult>) {
   const router = useRouter();
   const [phase, setPhase] = useState<GamePhase>("setup");
   const [progress, setProgress] = useState(0);
+  const [showInstruction, setShowInstruction] = useState(false);
 
   const mousePos = useRef<{ x: number; y: number } | null>(null);
   const samples = useRef<TSample[]>([]);
@@ -79,7 +91,13 @@ export function GameRunner<TSample, TResult>({
 
   const handleStart = () => {
     if (phase !== "setup") return;
+    // Run inside this user-gesture context so callers can unlock audio etc.
+    onStart?.();
     setPhase("play");
+    if (templateRef.current.play.instruction) {
+      setShowInstruction(true);
+      setTimeout(() => setShowInstruction(false), 3000);
+    }
 
     const startedAt = performance.now();
     const durationMs = templateRef.current.play.durationSeconds * 1000;
@@ -112,11 +130,51 @@ export function GameRunner<TSample, TResult>({
 
   return (
     <div
-      className={`relative min-h-screen bg-[#0a0e14] overflow-hidden flex items-center justify-center ${
-        cursor === "auto" ? "cursor-auto" : "cursor-none"
-      }`}
+      className={`relative min-h-screen bg-[#0a0e14] overflow-hidden flex items-center justify-center ${CURSOR_CLASS[cursor]}`}
     >
+      <button
+        onClick={() => router.back()}
+        aria-label="Go back"
+        className="fixed top-4 left-4 z-50 p-2 text-[#e0dfdb]/40 hover:text-[#e0dfdb]/80 transition-opacity duration-300 cursor-pointer focus:outline-none"
+      >
+        <svg
+          width="20"
+          height="20"
+          viewBox="0 0 20 20"
+          fill="none"
+          aria-hidden
+        >
+          <path
+            d="M12 4 L6 10 L12 16"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      </button>
+
       {children({ phase, progress, end, pushSample })}
+
+      <AnimatePresence>
+        {showInstruction && template.play.instruction && (
+          <motion.div
+            key="instruction"
+            initial={{ opacity: 0 }}
+            animate={{
+              opacity: 0.6,
+              transition: { duration: 0.5, ease: "easeInOut" },
+            }}
+            exit={{
+              opacity: 0,
+              transition: { duration: 1, ease: "easeInOut" },
+            }}
+            className="fixed bottom-12 left-0 w-full text-center text-sm italic font-[family-name:var(--font-eb-garamond)] text-[#e0dfdb] pointer-events-none"
+          >
+            {template.play.instruction}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <AnimatePresence>
         {phase === "setup" && (

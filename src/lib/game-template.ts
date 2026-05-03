@@ -36,6 +36,8 @@ export interface GamePlay<TSample> {
    * Return a sample to record, or `null` to skip this frame.
    */
   sample: (ctx: GameSampleContext) => TSample | null;
+  /** One-line italic hint shown for ~3 s after Start, then fades out. */
+  instruction?: string;
 }
 
 /** Phase 3 — how to reduce samples and where to go next. */

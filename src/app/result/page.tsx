@@ -98,6 +98,14 @@ function readJSON(key: string): unknown {
 }
 
 function loadGameData(): GameData | null {
+  console.log("[tide] raw localStorage values:", {
+    drift: localStorage.getItem(KEYS.drift),
+    periphery: localStorage.getItem(KEYS.periphery),
+    pulse: localStorage.getItem(KEYS.pulse),
+    glimpse: localStorage.getItem(KEYS.glimpse),
+    current: localStorage.getItem(KEYS.current),
+  });
+
   const drift = readJSON(KEYS.drift) as
     | { meanDistance?: number; distanceVariance?: number }
     | null;

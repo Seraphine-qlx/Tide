@@ -36,7 +36,7 @@ const RANGES = {
   driftVariance: [0, 50000] as const,
   pulseInterval: [200, 2000] as const,
   pulseVariance: [0, 200000] as const,
-  peripheryAccuracy: [0, 4] as const,
+  peripheryAccuracy: [0, 1] as const,
   currentSwitches: [0, 30] as const,
   currentLongestDwell: [0, 40000] as const,
 };

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
-import { EB_Garamond } from "next/font/google";
+import { EB_Garamond, Noto_Serif_SC } from "next/font/google";
 import "./globals.css";
 
 const geistSans = localFont({
@@ -18,6 +18,11 @@ const ebGaramond = EB_Garamond({
   variable: "--font-eb-garamond",
   weight: ["400", "500", "600"],
 });
+const notoSerifSC = Noto_Serif_SC({
+  subsets: ["latin"],
+  variable: "--font-noto-serif-sc",
+  weight: ["400", "500", "600", "700"],
+});
 
 export const metadata: Metadata = {
   title: "Tide",
@@ -32,7 +37,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${ebGaramond.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} ${ebGaramond.variable} ${notoSerifSC.variable} antialiased`}
       >
         {children}
       </body>

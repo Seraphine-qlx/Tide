@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
@@ -10,6 +10,7 @@ import {
   TideType,
   calculateType,
 } from "@/lib/scoring";
+import { renderPortrait } from "@/lib/portrait";
 
 const TYPE_LABELS: Record<
   TideType,
@@ -127,6 +128,8 @@ export default function ResultPage() {
   const router = useRouter();
   const [status, setStatus] = useState<LoadStatus>("loading");
   const [result, setResult] = useState<ScoreResult | null>(null);
+  const [gameData, setGameData] = useState<GameData | null>(null);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   useEffect(() => {
     const data = loadGameData();
@@ -134,9 +137,15 @@ export default function ResultPage() {
       setStatus("missing");
       return;
     }
+    setGameData(data);
     setResult(calculateType(data));
     setStatus("ready");
   }, []);
+
+  useEffect(() => {
+    if (!result || !gameData || !canvasRef.current) return;
+    renderPortrait(result.type, gameData, canvasRef.current);
+  }, [result, gameData]);
 
   const handlePlayAgain = () => {
     try {
@@ -189,6 +198,13 @@ export default function ResultPage() {
         className="w-full max-w-xl flex flex-col gap-20"
       >
         <div className="flex flex-col items-center gap-8 text-center">
+          <canvas
+            ref={canvasRef}
+            width={300}
+            height={300}
+            style={{ width: 240, height: 240 }}
+            className="block"
+          />
           <h1
             className="font-[family-name:var(--font-eb-garamond)] text-5xl sm:text-6xl tracking-wide"
             style={{ fontWeight: 500 }}

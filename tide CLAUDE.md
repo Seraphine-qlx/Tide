@@ -106,3 +106,75 @@ Current status
 [Update this section as you go. As of project init: Day 1, building scaffolding.]
 Open TODOs
 [Update this section as you go.]
+
+## Portrait Generation System
+
+### Design Philosophy
+Portrait generation follows Jon McCormack's generative art principles (Ten Questions Concerning Generative Computer Art, Leonardo 2014; Complexity and Aesthetics in Generative and Evolutionary Art, 2022):
+- Output must EMERGE from rules and data, not be hand-drawn
+- Same type, different users = structurally similar but never identical
+- Complexity level must match the cognitive character of each type
+- No AIGC APIs. Pure canvas math only.
+- Only allowed external library: simplex-noise
+
+### Data Available
+Game results passed as GameData object:
+- drift: { meanDistance, distanceVariance }
+- periphery: { count, accuracy }
+- pulse: { tapCount, meanInterval, intervalVariance }
+- glimpse: { whole, detail, mood, structure }
+- current: { totalDwell, switches, longestDwell, preferredType }
+
+### Algorithms per Type
+
+TIDE: Superimposed sine waves
+- 5 sine waves stacked horizontally across full canvas width (300px)
+- distanceVariance (0-50000) maps to amplitude: 20-60px
+- meanInterval (200-2000ms) maps to base frequency: 0.04-0.015 cycles/px
+- intervalVariance maps to phase offset variation between the 5 waves
+- Wave opacities: center wave 0.9, stepping down to 0.25 at outer edges
+- Render as stroked paths on canvas, strokeWidth 1.5, color #e0dfdb
+
+MOUNTAIN: Simplex noise flow field, low frequency
+- Use simplex-noise library to generate 2D noise field
+- Particles start at left edge, follow noise gradient, leave trails
+- distanceVariance maps to noise scale: low variance = large smooth scale (0.003), high = fine scale (0.008)
+- longestDwell (0-40000ms) maps to trail length: 100-400 steps per particle
+- tapCount (0-50) maps to particle count: 8-20
+- Render trails as thin lines, opacity 0.6, strokeWidth 1
+
+MIRROR: Recursive radial symmetry
+- Generate marks in one sector (360/n degrees), rotate-copy n times around center (150,150)
+- periphery accuracy (0-4) maps to symmetry axes: 2, 4, 6, or 8
+- glimpse whole score (0-3) maps to recursion depth: 1-3 levels
+- Use seeded LCG for mark positions within sector
+- Render as stroked arcs and lines, opacity varies 0.4-0.9
+
+STREAM: Branching flow field
+- Simplex noise vector field, particles travel and branch
+- current switches (0-30) maps to branch probability per step: 0.02-0.15
+- longestDwell maps to main path strokeWidth: 1-3px
+- glimpse structure score (0-3) maps to number of starting paths: 1-3
+- Particles travel left to right, branches curve away then fade
+- Main paths opacity 0.85, branches 0.4
+
+FIREFLY: Brownian motion particle traces
+- N walkers start at seeded positions, each takes M steps
+- distanceVariance maps to step size: 2-8px
+- tapCount maps to walker count: 10-30
+- intervalVariance maps to step angle variance: tight clusters vs scattered
+- Render final dot positions as filled circles, radius 2-5px
+- Larger dots get feGaussianBlur glow filter (stdDeviation 3)
+- Opacity varies per dot: 0.2-0.95 based on seeded value
+
+### Technical Rules
+- File: src/lib/portrait.ts
+- Export: renderPortrait(type: string, gameData: GameData, canvas: HTMLCanvasElement): void
+- Canvas size: always 300x300 internal, displayed at 240x240 via CSS
+- Background: fill #0a0e14 before drawing
+- All colors: #e0dfdb with opacity variants
+- NO p5.js, NO fabric.js, NO other canvas libraries
+- simplex-noise is the ONLY allowed external dependency
+- Deterministic: seeded LCG for all randomness: s = (s * 16807) % 2147483647
+- Seed from: hashCode(type) XOR Math.floor(gameData.drift.distanceVariance)
+- In result page: use <canvas ref={canvasRef}> with useEffect calling renderPortrait

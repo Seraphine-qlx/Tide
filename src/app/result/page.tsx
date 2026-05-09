@@ -218,9 +218,18 @@ export default function ResultPage() {
       setStatus("missing");
       return;
     }
+    const computed = calculateType(data);
     setGameData(data);
-    setResult(calculateType(data));
+    setResult(computed);
     setStatus("ready");
+    try {
+      localStorage.setItem(
+        "tide_result",
+        JSON.stringify({ type: computed.type, scores: computed.scores })
+      );
+    } catch {
+      // ignore — storage best-effort
+    }
   }, []);
 
   useEffect(() => {
@@ -233,6 +242,7 @@ export default function ResultPage() {
       for (const key of Object.values(KEYS)) {
         localStorage.removeItem(key);
       }
+      localStorage.removeItem("tide_result");
     } catch {
       // ignore — clearing is best-effort
     }

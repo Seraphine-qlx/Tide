@@ -135,6 +135,7 @@ export default function MeditationPage() {
         decay: params.reverbDecay,
         wet: 0.5,
       }).toDestination();
+      await reverb.ready;
       const filter = new Tone.Filter(
         params.filterCutoff,
         "lowpass"

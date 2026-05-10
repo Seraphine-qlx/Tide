@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import * as Tone from "tone";
 
@@ -46,7 +47,7 @@ const FALLBACK_PARAMS: SoundscapeParams = {
   reverbDecay: 4,
   filterCutoff: 2000,
   targetVolume: -22,
-  fadeInDuration: 3,
+  fadeInDuration: 1,
 };
 
 export default function MeditationPage() {
@@ -173,7 +174,8 @@ export default function MeditationPage() {
     }
   };
 
-  const handleLeave = () => {
+  const handleLeave = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    e.preventDefault();
     if (playerRef.current) {
       try {
         playerRef.current.volume.rampTo(-60, 5);
@@ -316,25 +318,32 @@ export default function MeditationPage() {
         />
       </div>
 
-      <button
+      <Link
+        href="/about"
         onClick={handleLeave}
+        aria-label="Continue"
         style={{
           position: "fixed",
-          bottom: "32px",
-          right: "32px",
-          background: "none",
-          border: "none",
-          cursor: "pointer",
+          bottom: "3rem",
+          right: "3rem",
           fontSize: "18px",
           color: "#1a1a1a",
-          opacity: 0.3,
+          opacity: 0.4,
           fontFamily: "inherit",
           padding: "8px",
+          textDecoration: "none",
+          transition: "opacity 600ms ease",
+          cursor: "pointer",
         }}
-        aria-label="Continue"
+        onMouseEnter={(e) => {
+          e.currentTarget.style.opacity = "0.8";
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.opacity = "0.4";
+        }}
       >
         →
-      </button>
+      </Link>
     </div>
   );
 }

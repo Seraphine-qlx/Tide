@@ -47,7 +47,7 @@ PART 2: soundscape (parameters for Tone.js real-time modulation of the base MP3)
 reverbDecay: number between 1-8 seconds. Longer for users with high longestDwell (>10000ms = 6-8s, <3000ms = 1-3s)
 filterCutoff: number between 200-8000 Hz. Brighter (higher) for higher periphery accuracy. accuracy 1.0 = 6000-8000, accuracy 0 = 200-400
 targetVolume: number between -30 and -15 dB. Louder for higher tapCount (>30 taps = -15 to -18, <10 taps = -25 to -30)
-fadeInDuration: number in seconds, default 3
+fadeInDuration: number in seconds, default 1
 
 Output ONLY valid JSON. No preamble, no markdown, no explanation. Just the JSON object.
 
@@ -62,7 +62,7 @@ Example structure:
     "reverbDecay": 4,
     "filterCutoff": 3000,
     "targetVolume": -22,
-    "fadeInDuration": 3
+    "fadeInDuration": 1
   }
 }`;
 
@@ -96,7 +96,7 @@ Example structure:
         reverbDecay: 4,
         filterCutoff: 2000,
         targetVolume: -22,
-        fadeInDuration: 3,
+        fadeInDuration: 1,
       },
     });
   }

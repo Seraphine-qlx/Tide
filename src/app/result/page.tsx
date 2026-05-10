@@ -179,7 +179,9 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
         fontSize: 10,
         letterSpacing: "4px",
         opacity: 0.35,
-        paddingLeft: 120,
+        maxWidth: 640,
+        margin: "0 auto",
+        textAlign: "center",
         textTransform: "uppercase",
       }}
     >
@@ -195,9 +197,10 @@ function SectionBody({ children }: { children: React.ReactNode }) {
         fontFamily: SERIF,
         fontSize: 14,
         opacity: 0.75,
-        padding: "0 120px",
+        maxWidth: 640,
+        margin: "16px auto 0",
+        textAlign: "center",
         lineHeight: 1.9,
-        marginTop: 16,
       }}
     >
       {children}

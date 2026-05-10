@@ -46,3 +46,6 @@ next-env.d.ts
 FIX_*.md
 TASK.md
 _archive_*.md
+
+# Claude Code local settings
+.claude/

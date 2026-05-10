@@ -286,7 +286,7 @@ Output ONLY valid JSON, no preamble.
 
 [底部 20% 留白]
 
-[最底部: 极小字 "Lixuan Qu · github.com/Seraphine-qlx/Tide", 11px, opacity 0.3]
+[最底部: 极小字 "Seraphine · github.com/Seraphine-qlx/Tide", 11px, opacity 0.3]
 ```
 
 **没有按钮、没有 next、没有 back、没有 contact me**。这是体验的终点。

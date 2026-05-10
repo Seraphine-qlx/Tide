@@ -233,6 +233,30 @@ export default function ResultPage() {
     } catch {
       // ignore — storage best-effort
     }
+
+    fetch("/api/soundscape", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        type: computed.type,
+        scores: computed.scores,
+        gameData: data,
+      }),
+    })
+      .then((res) => res.json())
+      .then((payload) => {
+        try {
+          localStorage.setItem(
+            "tide_soundscape_prefetch",
+            JSON.stringify(payload)
+          );
+        } catch {
+          // ignore — storage best-effort
+        }
+      })
+      .catch(() => {
+        // ignore — meditation page falls back to its own fetch
+      });
   }, []);
 
   useEffect(() => {

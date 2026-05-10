@@ -74,10 +74,15 @@ function Floating({
 
 function PoemContent() {
   return (
-    <div className="text-[#e0dfdb]/70 italic font-[family-name:var(--font-eb-garamond)] text-base sm:text-lg leading-relaxed text-center max-w-[260px]">
-      the light bends
-      <br />
-      around what it cannot hold
+    <div className="text-center max-w-[260px] font-[family-name:var(--font-eb-garamond)]">
+      <div className="text-[#e0dfdb]/70 italic text-base sm:text-lg leading-relaxed">
+        the light bends
+        <br />
+        around what it cannot hold
+      </div>
+      <div className="text-[#e0dfdb]/50 italic text-sm leading-relaxed mt-6">
+        Notice what draws you. Linger or drift, as you will.
+      </div>
     </div>
   );
 }

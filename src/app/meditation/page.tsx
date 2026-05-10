@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { motion } from "framer-motion";
 import * as Tone from "tone";
 
 interface SoundscapeDescription {
@@ -70,6 +71,34 @@ export default function MeditationPage() {
     const result = localStorage.getItem("tide_result");
     const currentType = result ? JSON.parse(result).type : "tide";
     setType(currentType);
+
+    const prefetched = localStorage.getItem("tide_soundscape_prefetch");
+    if (prefetched) {
+      try {
+        const data = JSON.parse(prefetched) as SoundscapeResponse;
+        localStorage.removeItem("tide_soundscape_prefetch");
+        setDescription(data.description);
+        setIsLoading(false);
+        initAudio(currentType, data.soundscape);
+        return () => {
+          if (progressIntervalRef.current) {
+            clearInterval(progressIntervalRef.current);
+          }
+          if (playerRef.current) {
+            try {
+              playerRef.current.stop();
+            } catch {
+              // ignore — player may not have started
+            }
+            playerRef.current.dispose();
+          }
+          if (reverbRef.current) reverbRef.current.dispose();
+          if (filterRef.current) filterRef.current.dispose();
+        };
+      } catch {
+        // fall through to network fetch
+      }
+    }
 
     const gameData = {
       drift: JSON.parse(
@@ -203,6 +232,7 @@ export default function MeditationPage() {
         paddingRight: "24px",
         position: "relative",
         fontFamily: "var(--font-eb-garamond)",
+        caretColor: "transparent",
       }}
     >
       <div
@@ -229,9 +259,11 @@ export default function MeditationPage() {
           </div>
         ) : (
           // eslint-disable-next-line @next/next/no-img-element
-          <img
+          <motion.img
             src={`/calligraphy/${type}.png`}
             alt={typeInfo.chinese}
+            animate={{ opacity: [0.88, 1, 0.88] }}
+            transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
             style={{
               width: "200px",
               height: "200px",
@@ -261,38 +293,44 @@ export default function MeditationPage() {
           </p>
         ) : description ? (
           <>
-            <p
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 0.75 }}
+              transition={{ duration: 1.5, delay: 0, ease: "easeInOut" }}
               style={{
                 fontSize: "15px",
                 lineHeight: 1.9,
-                opacity: 0.75,
                 fontStyle: "italic",
                 marginBottom: "64px",
               }}
             >
               {description.aboutTheSound}
-            </p>
+            </motion.p>
 
-            <p
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 0.65 }}
+              transition={{ duration: 1.5, delay: 8, ease: "easeInOut" }}
               style={{
                 fontSize: "14px",
                 lineHeight: 1.9,
-                opacity: 0.65,
                 marginBottom: "64px",
               }}
             >
               {description.recommendedMusic}
-            </p>
+            </motion.p>
 
-            <p
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 0.55 }}
+              transition={{ duration: 1.5, delay: 16, ease: "easeInOut" }}
               style={{
                 fontSize: "14px",
                 lineHeight: 1.9,
-                opacity: 0.55,
               }}
             >
               {description.howOthersHaveUsedIt}
-            </p>
+            </motion.p>
           </>
         ) : null}
       </div>

@@ -11,47 +11,94 @@ import {
   calculateType,
 } from "@/lib/scoring";
 import { renderPortrait } from "@/lib/portrait";
+import { detectLanguage, type Language } from "@/lib/language";
 
-const TYPE_LABELS: Record<
-  TideType,
-  {
-    chinese: string;
-    english: string;
-    description: string;
-    poetic: string;
-  }
-> = {
+interface TypeLabel {
+  chinese: string;
+  english: string;
+  description: { en: string; zh: string };
+  poetic: string;
+}
+
+const TYPE_LABELS: Record<TideType, TypeLabel> = {
   tide: {
     chinese: "潮",
     english: "Tide",
-    description: "You move in rhythms. Attention flows, recedes, and returns.",
+    description: {
+      en: "You move in rhythms. Attention flows, recedes, and returns.",
+      zh: "你在节奏里行走。注意力流动，退去，回来。",
+    },
     poetic: "流动如潮，有韵自来",
   },
   mountain: {
     chinese: "山",
     english: "Mountain",
-    description: "You hold steady. Attention is a form of loyalty.",
+    description: {
+      en: "You hold steady. Attention is a form of loyalty.",
+      zh: "你停下了。注意力是一种忠诚。",
+    },
     poetic: "静如山岳，自有重量",
   },
   mirror: {
     chinese: "镜",
     english: "Mirror",
-    description: "You receive without grasping. Attention is open presence.",
+    description: {
+      en: "You receive without grasping. Attention is open presence.",
+      zh: "你映照，但不抓取。注意力是敞开的在场。",
+    },
     poetic: "空明如镜，万象俱收",
   },
   stream: {
     chinese: "溪",
     english: "Stream",
-    description: "You find the path. Attention follows what yields.",
+    description: {
+      en: "You find the path. Attention follows what yields.",
+      zh: "你找到了路径。注意力跟随让出来的方向。",
+    },
     poetic: "顺势而行，曲折自通",
   },
   firefly: {
     chinese: "萤",
     english: "Firefly",
-    description: "You pulse. Attention ignites in bursts of vivid focus.",
+    description: {
+      en: "You pulse. Attention ignites in bursts of vivid focus.",
+      zh: "注意力像脉冲。亮，暗，又亮。",
+    },
     poetic: "一点星火，照见当下",
   },
 };
+
+const SECTION_LABELS = {
+  en: {
+    observed: "01  WHAT WE OBSERVED",
+    means: "02  WHAT IT MEANS",
+    howTo: "03  HOW TO BE WITH IT",
+  },
+  zh: {
+    observed: "01  我们看见了什么",
+    means: "02  它意味着什么",
+    howTo: "03  如何与之共处",
+  },
+} as const;
+
+const UI_TEXT = {
+  en: {
+    header: "YOUR ATTENTION TYPE",
+    distribution: "PATTERN DISTRIBUTION",
+    continueLabel: "CONTINUE",
+    playAgain: "play again",
+    missingMessage: "Please play the games first.",
+    begin: "Begin",
+  },
+  zh: {
+    header: "你的注意力类型",
+    distribution: "类型分布",
+    continueLabel: "继续",
+    playAgain: "再玩一次",
+    missingMessage: "请先玩五个游戏。",
+    begin: "开始",
+  },
+} as const;
 
 const TYPE_ORDER: TideType[] = [
   "tide",
@@ -69,14 +116,24 @@ const KEYS = {
   current: "tide_current_result",
 } as const;
 
-const OBSERVATION_TEXT =
-  "Your cursor traced the light with a steady, undulating rhythm — neither tightly locked nor drifting away. Your taps fell at regular intervals. Your gaze returned to the same elements, again and again.";
-
-const SCIENCE_TEXT =
-  "Tide-type attention follows the brain's natural theta rhythm (Busch et al., 2010, PNAS) — sampling the world in periodic waves rather than constant focus. It is not distraction. It is rhythm.";
-
-const ACCEPTANCE_TEXT =
-  "You do not need to force sustained focus. Your mind moves in tides — work with the wave, not against it. Rest at the trough. Move at the peak. The pattern is already in you.";
+const SECTION_TEXT = {
+  en: {
+    observation:
+      "Your cursor traced the light with a steady, undulating rhythm — neither tightly locked nor drifting away. Your taps fell at regular intervals. Your gaze returned to the same elements, again and again.",
+    science:
+      "Tide-type attention follows the brain's natural theta rhythm (Busch et al., 2010, PNAS) — sampling the world in periodic waves rather than constant focus. It is not distraction. It is rhythm.",
+    acceptance:
+      "You do not need to force sustained focus. Your mind moves in tides — work with the wave, not against it. Rest at the trough. Move at the peak. The pattern is already in you.",
+  },
+  zh: {
+    observation:
+      "你的光标以稳定起伏的节奏追随着光——既没有紧紧锁住，也没有飘散开去。你的点击落在规律的间隔上。你的目光一次又一次回到同样的元素。",
+    science:
+      "潮型注意力跟随大脑天然的 theta 节律（Busch et al., 2010, PNAS）——以周期性的波浪采样世界，而不是恒定聚焦。这不是分心，是节奏。",
+    acceptance:
+      "你不需要强迫自己持续聚焦。你的心智像潮水一样移动——顺着浪走，而不是逆着它。在波谷处休息，在波峰处行动。那个节奏，本来就在你身上。",
+  },
+} as const;
 
 type LoadStatus = "loading" | "missing" | "ready";
 
@@ -171,18 +228,24 @@ function ThinRule() {
   );
 }
 
-function SectionLabel({ children }: { children: React.ReactNode }) {
+function SectionLabel({
+  children,
+  lang = "en",
+}: {
+  children: React.ReactNode;
+  lang?: Language;
+}) {
   return (
     <div
       style={{
-        fontFamily: SERIF,
+        fontFamily: lang === "zh" ? HAN : SERIF,
         fontSize: 10,
-        letterSpacing: "4px",
+        letterSpacing: lang === "zh" ? "6px" : "4px",
         opacity: 0.35,
         maxWidth: 640,
         margin: "0 auto",
         textAlign: "center",
-        textTransform: "uppercase",
+        textTransform: lang === "zh" ? "none" : "uppercase",
       }}
     >
       {children}
@@ -190,11 +253,17 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
   );
 }
 
-function SectionBody({ children }: { children: React.ReactNode }) {
+function SectionBody({
+  children,
+  lang = "en",
+}: {
+  children: React.ReactNode;
+  lang?: Language;
+}) {
   return (
     <p
       style={{
-        fontFamily: SERIF,
+        fontFamily: lang === "zh" ? HAN : SERIF,
         fontSize: 14,
         opacity: 0.75,
         maxWidth: 640,
@@ -213,9 +282,13 @@ export default function ResultPage() {
   const [status, setStatus] = useState<LoadStatus>("loading");
   const [result, setResult] = useState<ScoreResult | null>(null);
   const [gameData, setGameData] = useState<GameData | null>(null);
+  const [language, setLanguage] = useState<Language>("en");
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   useEffect(() => {
+    const lang = detectLanguage();
+    setLanguage(lang);
+
     const data = loadGameData();
     if (!data) {
       setStatus("missing");
@@ -241,13 +314,14 @@ export default function ResultPage() {
         type: computed.type,
         scores: computed.scores,
         gameData: data,
+        language: lang,
       }),
     })
       .then((res) => res.json())
       .then((payload) => {
         try {
           localStorage.setItem(
-            "tide_soundscape_prefetch",
+            `tide_soundscape_prefetch_${lang}`,
             JSON.stringify(payload)
           );
         } catch {
@@ -310,14 +384,14 @@ export default function ResultPage() {
         >
           <p
             style={{
-              fontFamily: SERIF,
+              fontFamily: language === "zh" ? HAN : SERIF,
               fontStyle: "italic",
               fontSize: 18,
               opacity: 0.6,
               lineHeight: 1.7,
             }}
           >
-            Please play the games first.
+            {UI_TEXT[language].missingMessage}
           </p>
           <Link
             href="/"
@@ -331,7 +405,7 @@ export default function ResultPage() {
               textTransform: "uppercase",
             }}
           >
-            Begin
+            {UI_TEXT[language].begin}
           </Link>
         </motion.div>
       </div>
@@ -359,14 +433,14 @@ export default function ResultPage() {
           style={{
             paddingTop: 60,
             textAlign: "center",
-            fontFamily: SERIF,
+            fontFamily: language === "zh" ? HAN : SERIF,
             fontSize: 11,
-            letterSpacing: "6px",
+            letterSpacing: language === "zh" ? "8px" : "6px",
             opacity: 0.4,
             textTransform: "uppercase",
           }}
         >
-          YOUR ATTENTION TYPE
+          {UI_TEXT[language].header}
         </div>
 
         <div
@@ -448,14 +522,14 @@ export default function ResultPage() {
         <p
           style={{
             textAlign: "center",
-            fontFamily: SERIF,
+            fontFamily: language === "zh" ? HAN : SERIF,
             fontStyle: "italic",
             fontSize: 15,
             opacity: 0.68,
             marginTop: 8,
           }}
         >
-          {winner.description}
+          {winner.description[language]}
         </p>
 
         <div
@@ -473,18 +547,30 @@ export default function ResultPage() {
 
         <ThinRule />
 
-        <SectionLabel>01&nbsp;&nbsp;WHAT WE OBSERVED</SectionLabel>
-        <SectionBody>{OBSERVATION_TEXT}</SectionBody>
+        <SectionLabel lang={language}>
+          {SECTION_LABELS[language].observed}
+        </SectionLabel>
+        <SectionBody lang={language}>
+          {SECTION_TEXT[language].observation}
+        </SectionBody>
 
         <ThinRule />
 
-        <SectionLabel>02&nbsp;&nbsp;WHAT IT MEANS</SectionLabel>
-        <SectionBody>{SCIENCE_TEXT}</SectionBody>
+        <SectionLabel lang={language}>
+          {SECTION_LABELS[language].means}
+        </SectionLabel>
+        <SectionBody lang={language}>
+          {SECTION_TEXT[language].science}
+        </SectionBody>
 
         <ThinRule />
 
-        <SectionLabel>03&nbsp;&nbsp;HOW TO BE WITH IT</SectionLabel>
-        <SectionBody>{ACCEPTANCE_TEXT}</SectionBody>
+        <SectionLabel lang={language}>
+          {SECTION_LABELS[language].howTo}
+        </SectionLabel>
+        <SectionBody lang={language}>
+          {SECTION_TEXT[language].acceptance}
+        </SectionBody>
 
         <div
           style={{
@@ -504,15 +590,15 @@ export default function ResultPage() {
         <div
           style={{
             textAlign: "center",
-            fontFamily: SERIF,
+            fontFamily: language === "zh" ? HAN : SERIF,
             fontSize: 11,
-            letterSpacing: "6px",
+            letterSpacing: language === "zh" ? "8px" : "6px",
             opacity: 0.35,
             marginTop: 48,
-            textTransform: "uppercase",
+            textTransform: language === "zh" ? "none" : "uppercase",
           }}
         >
-          PATTERN DISTRIBUTION
+          {UI_TEXT[language].distribution}
         </div>
 
         <div
@@ -602,13 +688,13 @@ export default function ResultPage() {
           <Link
             href="/meditation"
             style={{
-              fontFamily: SERIF,
+              fontFamily: language === "zh" ? HAN : SERIF,
               fontSize: 13,
-              letterSpacing: "5px",
+              letterSpacing: language === "zh" ? "8px" : "5px",
               padding: "14px 48px",
               border: `0.6px solid rgba(26,26,26,0.5)`,
               color: INK,
-              textTransform: "uppercase",
+              textTransform: language === "zh" ? "none" : "uppercase",
               transition: "background-color 600ms ease",
             }}
             onMouseEnter={(e) => {
@@ -618,7 +704,7 @@ export default function ResultPage() {
               e.currentTarget.style.backgroundColor = "transparent";
             }}
           >
-            CONTINUE
+            {UI_TEXT[language].continueLabel}
           </Link>
         </div>
 
@@ -626,9 +712,9 @@ export default function ResultPage() {
           <button
             onClick={handlePlayAgain}
             style={{
-              fontFamily: SERIF,
+              fontFamily: language === "zh" ? HAN : SERIF,
               fontSize: 11,
-              letterSpacing: "3px",
+              letterSpacing: language === "zh" ? "4px" : "3px",
               opacity: 0.3,
               marginTop: 20,
               marginBottom: 60,
@@ -636,10 +722,10 @@ export default function ResultPage() {
               border: "none",
               color: INK,
               cursor: "pointer",
-              textTransform: "lowercase",
+              textTransform: language === "zh" ? "none" : "lowercase",
             }}
           >
-            play again
+            {UI_TEXT[language].playAgain}
           </button>
         </div>
       </motion.div>

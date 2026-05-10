@@ -3,9 +3,29 @@ import { NextRequest, NextResponse } from "next/server";
 
 const client = new Anthropic();
 
+const FALLBACK_DESCRIPTIONS_EN = {
+  aboutTheSound:
+    "This soundscape was made for your attention type. It sits in the lower frequencies, with slow oscillating layers and a generous reverb tail.",
+  recommendedMusic:
+    "Music that resonates with this attention type: Brian Eno's Music for Airports, Stars of the Lid, Nils Frahm's Spaces.",
+  howOthersHaveUsedIt:
+    "How others have used it: Some play it while writing or coding. Others let it run in the background of a quiet morning.",
+};
+
+const FALLBACK_DESCRIPTIONS_ZH = {
+  aboutTheSound:
+    "这是为你的注意力类型做的声音。它停留在较低的频段，缓慢起伏的层次之上有宽阔的混响尾音。",
+  recommendedMusic:
+    "与这种注意力共振的音乐：Brian Eno《Music for Airports》、Stars of the Lid、Nils Frahm《Spaces》。",
+  howOthersHaveUsedIt:
+    "别人这样听它：有人在写作或编程时放着，有人让它在安静的早晨里持续播放。",
+};
+
 export async function POST(request: NextRequest) {
+  let lang: "zh" | "en" = "en";
   try {
-    const { type, gameData } = await request.json();
+    const { type, gameData, language } = await request.json();
+    lang = language === "zh" ? "zh" : "en";
 
     const typeNames: Record<string, string> = {
       tide: "Tide (潮)",
@@ -23,24 +43,42 @@ export async function POST(request: NextRequest) {
       Current: ${gameData.current?.switches} switches, longest dwell ${(gameData.current?.longestDwell / 1000)?.toFixed(1)}s
     `;
 
+    const langInstruction =
+      lang === "zh"
+        ? "Respond entirely in Simplified Chinese. Use natural, restrained Chinese — no clinical or wellness language. Match the contemplative tone of the rest of Tide."
+        : "Respond entirely in English.";
+
+    const openings =
+      lang === "zh"
+        ? {
+            aboutTheSound: `Start with "这是${typeNames[type] || type}的声音。"`,
+            recommendedMusic: `Start with "与这种注意力共振的音乐："`,
+            howOthersHaveUsedIt: `Start with "别人这样听它：" exactly.`,
+          }
+        : {
+            aboutTheSound: `Start with "This is the sound of ${typeNames[type] || type}."`,
+            recommendedMusic: `Start with "Music that resonates with this attention type:"`,
+            howOthersHaveUsedIt: `Use "How others have used it:" as the exact opening.`,
+          };
+
     const systemPrompt = `You are designing a personalized audio experience for a user who completed the Tide attention test. Their attention type is: ${typeNames[type] || type}.
 Their game data: ${humanReadableData}
 
 Generate a JSON response with exactly two parts:
 
-PART 1: description (three short paragraphs in English)
+PART 1: description (three short paragraphs)
 
-aboutTheSound: 2-3 sentences describing the actual audio characteristics of the soundscape they are about to hear. Reference frequency range, layering, reverb, rhythm. Make it specific to their data. Start with "This is the sound of ${typeNames[type] || type}."
+aboutTheSound: 2-3 sentences describing the actual audio characteristics of the soundscape they are about to hear. Reference frequency range, layering, reverb, rhythm. Make it specific to their data. ${openings.aboutTheSound}
 
-recommendedMusic: Start with "Music that resonates with this attention type:" then list 3-5 specific artists or albums in ambient, modern classical, or generative music. Be specific (e.g., "Brian Eno's Music for Airports", "Stars of the Lid", "Tim Hecker's Ravedeath 1972").
+recommendedMusic: ${openings.recommendedMusic} Then list 3-5 specific artists or albums in ambient, modern classical, or generative music. Be specific (e.g., "Brian Eno's Music for Airports", "Stars of the Lid", "Tim Hecker's Ravedeath 1972"). Keep artist and album names in their original language; only the surrounding sentence should follow the response language.
 
-howOthersHaveUsedIt: Start with "How others have used it:" then 2-3 sentences describing how people with this attention type tend to use this kind of music. Describe scenarios (writing, coding, quiet mornings) without prescribing. Use "How others have used it:" as the exact opening.
+howOthersHaveUsedIt: ${openings.howOthersHaveUsedIt} Then 2-3 sentences describing how people with this attention type tend to use this kind of music. Describe scenarios (writing, coding, quiet mornings) without prescribing.
 
 Tone rules:
 - Direct, calm, confident
 - No wellness language, no therapy framing
 - Treat the user as an adult
-- English only
+- ${langInstruction}
 
 PART 2: soundscape (parameters for Tone.js real-time modulation of the base MP3)
 
@@ -84,14 +122,8 @@ Example structure:
   } catch (error) {
     console.error("Soundscape API error:", error);
     return NextResponse.json({
-      description: {
-        aboutTheSound:
-          "This soundscape was made for your attention type. It sits in the lower frequencies, with slow oscillating layers and a generous reverb tail.",
-        recommendedMusic:
-          "Music that resonates with this attention type: Brian Eno's Music for Airports, Stars of the Lid, Nils Frahm's Spaces.",
-        howOthersHaveUsedIt:
-          "How others have used it: Some play it while writing or coding. Others let it run in the background of a quiet morning.",
-      },
+      description:
+        lang === "zh" ? FALLBACK_DESCRIPTIONS_ZH : FALLBACK_DESCRIPTIONS_EN,
       soundscape: {
         reverbDecay: 4,
         filterCutoff: 2000,

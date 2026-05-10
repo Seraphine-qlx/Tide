@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import * as Tone from "tone";
+import { detectLanguage } from "@/lib/language";
 
 interface SoundscapeDescription {
   aboutTheSound: string;
@@ -35,13 +36,21 @@ const ATTENTION_TYPES: Record<
   firefly: { chinese: "萤", english: "Firefly" },
 };
 
-const FALLBACK_DESCRIPTION: SoundscapeDescription = {
+const FALLBACK_DESCRIPTION_EN: SoundscapeDescription = {
   aboutTheSound:
     "This soundscape was made for your attention type.",
   recommendedMusic:
     "Music that resonates with this attention type: Brian Eno, Stars of the Lid, Nils Frahm.",
   howOthersHaveUsedIt:
     "How others have used it: Some play it while writing. Others let it run in a quiet morning.",
+};
+
+const FALLBACK_DESCRIPTION_ZH: SoundscapeDescription = {
+  aboutTheSound: "这是为你的注意力类型做的声音。",
+  recommendedMusic:
+    "与这种注意力共振的音乐：Brian Eno、Stars of the Lid、Nils Frahm。",
+  howOthersHaveUsedIt:
+    "别人这样听它：有人在写作时放着，有人让它在安静的早晨里持续播放。",
 };
 
 const FALLBACK_PARAMS: SoundscapeParams = {
@@ -59,6 +68,7 @@ export default function MeditationPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [progress, setProgress] = useState(0);
   const [imageError, setImageError] = useState(false);
+  const [language, setLanguage] = useState<"zh" | "en">("en");
 
   const playerRef = useRef<Tone.Player | null>(null);
   const reverbRef = useRef<Tone.Reverb | null>(null);
@@ -68,15 +78,18 @@ export default function MeditationPage() {
   );
 
   useEffect(() => {
+    const language = detectLanguage();
+    setLanguage(language);
     const result = localStorage.getItem("tide_result");
     const currentType = result ? JSON.parse(result).type : "tide";
     setType(currentType);
 
-    const prefetched = localStorage.getItem("tide_soundscape_prefetch");
+    const prefetchKey = `tide_soundscape_prefetch_${language}`;
+    const prefetched = localStorage.getItem(prefetchKey);
     if (prefetched) {
       try {
         const data = JSON.parse(prefetched) as SoundscapeResponse;
-        localStorage.removeItem("tide_soundscape_prefetch");
+        localStorage.removeItem(prefetchKey);
         setDescription(data.description);
         setIsLoading(false);
         initAudio(currentType, data.soundscape);
@@ -123,7 +136,7 @@ export default function MeditationPage() {
     fetch("/api/soundscape", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ type: currentType, scores, gameData }),
+      body: JSON.stringify({ type: currentType, scores, gameData, language }),
     })
       .then((res) => res.json())
       .then((data: SoundscapeResponse) => {
@@ -132,7 +145,9 @@ export default function MeditationPage() {
         initAudio(currentType, data.soundscape);
       })
       .catch(() => {
-        setDescription(FALLBACK_DESCRIPTION);
+        setDescription(
+          language === "zh" ? FALLBACK_DESCRIPTION_ZH : FALLBACK_DESCRIPTION_EN,
+        );
         setIsLoading(false);
         initAudio(currentType, FALLBACK_PARAMS);
       });
@@ -289,7 +304,7 @@ export default function MeditationPage() {
               fontStyle: "italic",
             }}
           >
-            composing...
+            {language === "zh" ? "正在生成…" : "composing..."}
           </p>
         ) : description ? (
           <>

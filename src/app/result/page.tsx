@@ -17,7 +17,6 @@ interface TypeLabel {
   chinese: string;
   english: string;
   description: { en: string; zh: string };
-  poetic: string;
 }
 
 const TYPE_LABELS: Record<TideType, TypeLabel> = {
@@ -28,7 +27,6 @@ const TYPE_LABELS: Record<TideType, TypeLabel> = {
       en: "You move in rhythms. Attention flows, recedes, and returns.",
       zh: "你在节奏里行走。注意力流动，退去，回来。",
     },
-    poetic: "流动如潮，有韵自来",
   },
   mountain: {
     chinese: "山",
@@ -37,7 +35,6 @@ const TYPE_LABELS: Record<TideType, TypeLabel> = {
       en: "You hold steady. Attention is a form of loyalty.",
       zh: "你停下了。注意力是一种忠诚。",
     },
-    poetic: "静如山岳，自有重量",
   },
   mirror: {
     chinese: "镜",
@@ -46,7 +43,6 @@ const TYPE_LABELS: Record<TideType, TypeLabel> = {
       en: "You receive without grasping. Attention is open presence.",
       zh: "你映照，但不抓取。注意力是敞开的在场。",
     },
-    poetic: "空明如镜，万象俱收",
   },
   stream: {
     chinese: "溪",
@@ -55,7 +51,6 @@ const TYPE_LABELS: Record<TideType, TypeLabel> = {
       en: "You find the path. Attention follows what yields.",
       zh: "你找到了路径。注意力跟随让出来的方向。",
     },
-    poetic: "顺势而行，曲折自通",
   },
   firefly: {
     chinese: "萤",
@@ -64,20 +59,19 @@ const TYPE_LABELS: Record<TideType, TypeLabel> = {
       en: "You pulse. Attention ignites in bursts of vivid focus.",
       zh: "注意力像脉冲。亮，暗，又亮。",
     },
-    poetic: "一点星火，照见当下",
   },
 };
 
 const SECTION_LABELS = {
   en: {
     observed: "01  WHAT WE OBSERVED",
-    means: "02  WHAT IT MEANS",
-    howTo: "03  HOW TO BE WITH IT",
+    is: "02  WHAT THIS IS",
+    where: "03  WHERE IT SHOWS UP",
   },
   zh: {
-    observed: "01  我们看见了什么",
-    means: "02  它意味着什么",
-    howTo: "03  如何与之共处",
+    observed: "01  我们观察到",
+    is: "02  这是什么",
+    where: "03  它在哪里发生",
   },
 } as const;
 
@@ -116,24 +110,84 @@ const KEYS = {
   current: "tide_current_result",
 } as const;
 
-const SECTION_TEXT = {
-  en: {
-    observation:
-      "Your cursor traced the light with a steady, undulating rhythm — neither tightly locked nor drifting away. Your taps fell at regular intervals. Your gaze returned to the same elements, again and again.",
-    science:
-      "Tide-type attention follows the brain's natural theta rhythm (Busch et al., 2010, PNAS) — sampling the world in periodic waves rather than constant focus. It is not distraction. It is rhythm.",
-    acceptance:
-      "You do not need to force sustained focus. Your mind moves in tides — work with the wave, not against it. Rest at the trough. Move at the peak. The pattern is already in you.",
+type SectionBodies = {
+  observed: { en: string; zh: string };
+  is: { en: string; zh: string };
+  where: { en: string; zh: string };
+};
+
+const SECTION_TEXT: Record<TideType, SectionBodies> = {
+  tide: {
+    observed: {
+      en: "Your cursor followed the light in steady rhythmic variation — neither holding too tight nor drifting too far. Your clicks fell in regular intervals. Your gaze returned to the same elements again and again.",
+      zh: "你的光标以稳定的节奏起伏地追随光，既没有锁死，也没有走散。你的点击落在规律的间隔上。你的目光一次次回到同样的元素。",
+    },
+    is: {
+      en: "Attention that moves in waves. Engagement and recovery alternate naturally. Rather than locking onto one focus, your attention samples, returns, samples again.",
+      zh: "一种波动的注意力。专注和恢复自然交替。你的注意力不会锁死在一个焦点，它会去看一眼，回来，再去。",
+    },
+    where: {
+      en: "Writing, editing, design — work with natural rhythm and revision suits this attention. Long stretches of vigilance work or constant context-switching tend to feel draining.",
+      zh: "写作、剪辑、设计——有自然节奏和修改空间的工作适合这种注意力。需要长时间持续警觉、或不断快速切换情境的工作会让你感到消耗。",
+    },
   },
-  zh: {
-    observation:
-      "你的光标以稳定起伏的节奏追随着光——既没有紧紧锁住，也没有飘散开去。你的点击落在规律的间隔上。你的目光一次又一次回到同样的元素。",
-    science:
-      "潮型注意力跟随大脑天然的 theta 节律（Busch et al., 2010, PNAS）——以周期性的波浪采样世界，而不是恒定聚焦。这不是分心，是节奏。",
-    acceptance:
-      "你不需要强迫自己持续聚焦。你的心智像潮水一样移动——顺着浪走，而不是逆着它。在波谷处休息，在波峰处行动。那个节奏，本来就在你身上。",
+  mountain: {
+    observed: {
+      en: "Your cursor stayed close to the light with low variance. You changed focus rarely in the final game. Once you settled on something, you stayed there.",
+      zh: "你的光标贴近光，方差很小。在最后的游戏里你切换得很少。一旦你停在某个地方，你就停在那里。",
+    },
+    is: {
+      en: "Attention that holds. Once engaged, it sustains without much drift. New stimuli don't pull it easily.",
+      zh: "一种锁定的注意力。一旦投入，不容易飘开。新的刺激很难把它拉走。",
+    },
+    where: {
+      en: "Deep reading, programming, research, craft — long-form work that rewards sustained focus is where this attention is at home. Quick task-switching environments and constant interruption tend to feel like fighting against the grain.",
+      zh: "深度阅读、编程、研究、手工——奖励长时间专注的长形态工作是它的领域。需要不停切换任务、持续被打断的环境会让你感到吃力。",
+    },
   },
-} as const;
+  mirror: {
+    observed: {
+      en: "You caught what appeared at the edges. In the final game, your attention spread evenly across all the floating elements. Your cursor neither chased the light tightly nor lost it.",
+      zh: "你捕捉到了出现在边缘的东西。在最后的游戏里，你的注意力均匀分布在所有漂浮的元素上。你的光标既没有紧追光，也没有失去它。",
+    },
+    is: {
+      en: "Attention spread evenly across the field. Awareness of surroundings without locking on any single thing. A wide, open monitoring.",
+      zh: "一种均匀分布在整个视野的注意力。对周围有觉知，但不锁定任何单一事物。一种开放的监听。",
+    },
+    where: {
+      en: "Teaching, hosting, group conversations, observing complex systems — situations that reward holding many things at once suit this attention. Tasks that demand intense single-point focus over long periods tend to ask more effort.",
+      zh: "教学、主持、群体对话、观察复杂系统——奖励同时关照多件事的场景适合它。需要长时间高强度单点专注的任务会让你需要更多努力。",
+    },
+  },
+  stream: {
+    observed: {
+      en: "When the image flashed, you tended to perceive its structure. Your cursor adapted to the light's path with moderate variation. In the final game, your attention moved between elements following what attracted it.",
+      zh: "闪现的画面里，你倾向于感知到它的结构。你的光标以适度的起伏跟随光的路径。在最后的游戏里，你的注意力跟着被吸引的元素移动。",
+    },
+    is: {
+      en: "Attention that follows what yields. It moves around obstacles rather than through them. It finds the path of least resistance.",
+      zh: "一种跟随让出来的方向的注意力。它绕开阻力而不是顶着阻力走。它找的是最容易走的那条路。",
+    },
+    where: {
+      en: "Improvisation, teaching that adapts to the room, freelance work that shifts between projects, creative problem-solving — situations that reward responsiveness and adaptation suit this attention. Strictly procedural tasks with fixed order tend to feel constraining.",
+      zh: "即兴、根据场域调整的教学、在不同项目之间切换的自由职业、创造性的问题解决——奖励灵活和适应的场景适合它。严格按程序、固定顺序的任务会让你感到束缚。",
+    },
+  },
+  firefly: {
+    observed: {
+      en: "Your cursor's distance from the light varied widely — close, then far, then close again. The intervals between your clicks were uneven. In the final game, you switched between elements many times, with short dwells.",
+      zh: "你的光标和光之间的距离起伏很大——一会儿近，一会儿远，又一会儿近。你点击的间隔不均匀。在最后的游戏里，你在元素之间切换了很多次，每次停留都很短。",
+    },
+    is: {
+      en: "Attention that pulses. Sharp and bright when engaged, then drops away to refresh. Periods of intense focus alternate with periods of drift.",
+      zh: "一种脉冲式的注意力。投入时清晰明亮，然后退去恢复。强烈专注的时段和飘散的时段交替出现。",
+    },
+    where: {
+      en: "Bursts of creative work, brainstorming, sprint-style tasks, intense periods followed by rest — work that moves with energy waves suits this attention. Sustained low-stimulus work tends to deplete energy quickly.",
+      zh: "突发的创造性工作、头脑风暴、冲刺型任务、强度高的时段后休息——和能量波动同步的工作适合它。持续的低刺激工作会让你的能量很快被消耗。",
+    },
+  },
+};
 
 type LoadStatus = "loading" | "missing" | "ready";
 
@@ -532,58 +586,32 @@ export default function ResultPage() {
           {winner.description[language]}
         </p>
 
-        <div
-          style={{
-            textAlign: "center",
-            fontFamily: HAN,
-            fontSize: 12,
-            letterSpacing: "3px",
-            opacity: 0.4,
-            marginTop: 8,
-          }}
-        >
-          {winner.poetic}
-        </div>
-
         <ThinRule />
 
         <SectionLabel lang={language}>
           {SECTION_LABELS[language].observed}
         </SectionLabel>
         <SectionBody lang={language}>
-          {SECTION_TEXT[language].observation}
+          {SECTION_TEXT[result.type].observed[language]}
         </SectionBody>
 
         <ThinRule />
 
         <SectionLabel lang={language}>
-          {SECTION_LABELS[language].means}
+          {SECTION_LABELS[language].is}
         </SectionLabel>
         <SectionBody lang={language}>
-          {SECTION_TEXT[language].science}
+          {SECTION_TEXT[result.type].is[language]}
         </SectionBody>
 
         <ThinRule />
 
         <SectionLabel lang={language}>
-          {SECTION_LABELS[language].howTo}
+          {SECTION_LABELS[language].where}
         </SectionLabel>
         <SectionBody lang={language}>
-          {SECTION_TEXT[language].acceptance}
+          {SECTION_TEXT[result.type].where[language]}
         </SectionBody>
-
-        <div
-          style={{
-            textAlign: "center",
-            fontFamily: HAN,
-            fontSize: 13,
-            letterSpacing: "4px",
-            opacity: 0.35,
-            marginTop: 48,
-          }}
-        >
-          {winner.poetic}
-        </div>
 
         <ThinRule />
 

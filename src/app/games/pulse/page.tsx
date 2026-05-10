@@ -35,6 +35,7 @@ export default function PulsePage() {
 
   const synthRef = useRef<Tone.Synth | null>(null);
   const lastTapRef = useRef<number | null>(null);
+  const pulseStartRef = useRef<number>(0);
 
   useEffect(() => {
     return () => {
@@ -47,6 +48,7 @@ export default function PulsePage() {
   }, []);
 
   const handleStart = () => {
+    pulseStartRef.current = performance.now();
     Tone.start().then(() => {
       console.log("Tone started successfully");
       Tone.getDestination().volume.value = MASTER_DB;
@@ -103,6 +105,16 @@ export default function PulsePage() {
     end: {
       next: "glimpse",
       computeResult: (timestamps) => {
+        try {
+          const start = pulseStartRef.current;
+          const relative = timestamps.map((t) => t - start);
+          localStorage.setItem(
+            "tide_pulse_timestamps",
+            JSON.stringify(relative),
+          );
+        } catch {
+          // localStorage may be unavailable; timestamps are best-effort.
+        }
         const tapCount = timestamps.length;
         if (tapCount < 2) {
           return { tapCount, meanInterval: 0, intervalVariance: 0 };

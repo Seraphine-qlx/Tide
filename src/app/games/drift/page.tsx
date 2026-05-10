@@ -80,6 +80,8 @@ export default function DriftPage() {
   const vibratoRef = useRef<Tone.Vibrato | null>(null);
   const filterRef = useRef<Tone.Filter | null>(null);
   const rafIdRef = useRef<number>(0);
+  const trailRef = useRef<Array<{ x: number; y: number; t: number }>>([]);
+  const lastTrailMsRef = useRef<number>(-Infinity);
 
   useEffect(() => {
     return () => {
@@ -151,7 +153,7 @@ export default function DriftPage() {
     play: {
       durationSeconds: DURATION_SECONDS,
       instruction: "Follow the light.",
-      sample: ({ mouse }) => {
+      sample: ({ mouse, elapsed }) => {
         const el = dotRef.current;
         if (!el || !mouse) return null;
         const r = el.getBoundingClientRect();
@@ -159,6 +161,13 @@ export default function DriftPage() {
         const dy = r.top + r.height / 2 - mouse.y;
         const distance = Math.hypot(dx, dy);
         distanceRef.current = distance;
+
+        const elapsedMs = elapsed * 1000;
+        if (elapsedMs - lastTrailMsRef.current >= 50) {
+          trailRef.current.push({ x: mouse.x, y: mouse.y, t: elapsedMs });
+          lastTrailMsRef.current = elapsedMs;
+        }
+
         return { distance };
       },
     },
@@ -169,6 +178,14 @@ export default function DriftPage() {
         const n = Math.max(ds.length, 1);
         const mean = ds.reduce((a, b) => a + b, 0) / n;
         const variance = ds.reduce((a, b) => a + (b - mean) ** 2, 0) / n;
+        try {
+          localStorage.setItem(
+            "tide_drift_trail",
+            JSON.stringify(trailRef.current),
+          );
+        } catch {
+          // localStorage may be unavailable; trail is best-effort.
+        }
         return { meanDistance: mean, distanceVariance: variance };
       },
     },

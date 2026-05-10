@@ -62,7 +62,7 @@ npm run dev
 
 ## About
 
-Made by **Lixuan Qu / 瞿丽璇**, May 2026. Master of AI, Monash University.
+Made by **Seraphine**, May 2026. Master of AI, Monash University.
 
 Podcast: 文明的毛边 (*The Frayed Edges of Civilization*).
 

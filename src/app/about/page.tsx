@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { motion } from "framer-motion";
 
 const BG = "#0a0e14";
@@ -344,6 +345,40 @@ export default function AboutPage() {
         }}
       >
         — Tide, May 2026
+      </motion.div>
+
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 1.5, delay: 19.5, ease: "easeInOut" }}
+        style={{
+          position: "fixed",
+          bottom: "1.5rem",
+          left: 0,
+          right: 0,
+          textAlign: "center",
+        }}
+      >
+        <Link
+          href="/"
+          style={{
+            fontFamily: isChinese ? SERIF_ZH : SERIF_EN,
+            fontStyle: "italic",
+            fontSize: 13,
+            color: FG,
+            opacity: 0.4,
+            textDecoration: "none",
+            transition: "opacity 500ms ease",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.opacity = "0.7";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.opacity = "0.4";
+          }}
+        >
+          {isChinese ? "重新开始 ↺" : "Begin again ↺"}
+        </Link>
       </motion.div>
     </div>
   );

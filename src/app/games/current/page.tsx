@@ -21,68 +21,67 @@ const TYPES: CurrentType[] = [
   "circle",
 ];
 
-const NOTES: Record<CurrentType, string> = {
-  poem: "C3",
-  color: "E3",
-  shape: "G3",
-  symbol: "B3",
-  line: "D4",
-  circle: "F4",
+const NOTES_BY_TYPE: Record<CurrentType, string> = {
+  poem: "C4",
+  color: "D4",
+  shape: "E4",
+  symbol: "G4",
+  line: "A4",
+  circle: "C5",
 };
 
-/** Effective silence — Tone.js handles -Infinity but ramping toward it can stall. */
-const SILENT_DB = -80;
-const ACTIVE_DB = -36;
-const MASTER_DB = -6;
-
 export default function CurrentPage() {
-  const synthsRef = useRef<Partial<Record<CurrentType, Tone.Synth>>>({});
+  const synthRef = useRef<Tone.PolySynth | null>(null);
+  const filterRef = useRef<Tone.Filter | null>(null);
 
   useEffect(() => {
+    const filter = new Tone.Filter(2000, "lowpass").toDestination();
+    const synth = new Tone.PolySynth(Tone.Synth, {
+      oscillator: { type: "sine" },
+      envelope: {
+        attack: 0.4,
+        decay: 0.2,
+        sustain: 0.6,
+        release: 1.5,
+      },
+      volume: -22,
+    }).connect(filter);
+    synthRef.current = synth;
+    filterRef.current = filter;
+
     return () => {
-      const synths = synthsRef.current;
       try {
-        for (const type of TYPES) {
-          synths[type]?.triggerRelease();
-          synths[type]?.dispose();
-        }
+        synth.releaseAll();
+        synth.dispose();
+        filter.dispose();
       } catch {
         // ignore
       }
-      synthsRef.current = {};
+      synthRef.current = null;
+      filterRef.current = null;
     };
   }, []);
 
   const handleStart = () => {
-    Tone.start().then(() => {
-      console.log("Tone started successfully");
-      Tone.getDestination().volume.value = MASTER_DB;
-      try {
-        const synths: Partial<Record<CurrentType, Tone.Synth>> = {};
-        for (const type of TYPES) {
-          const synth = new Tone.Synth({
-            oscillator: { type: "sine" },
-            envelope: { attack: 0.4, decay: 0.2, sustain: 1, release: 0.6 },
-          }).toDestination();
-          synth.volume.value = SILENT_DB;
-          synth.triggerAttack(NOTES[type]);
-          synths[type] = synth;
-        }
-        synthsRef.current = synths;
-      } catch {
-        // ignore
-      }
+    Tone.start().catch(() => {
+      // ignore — the lazy check in handleHover will retry
     });
   };
 
   const handleHover = (type: CurrentType, hovering: boolean) => {
-    const synth = synthsRef.current[type];
+    const synth = synthRef.current;
     if (!synth) return;
+    const note = NOTES_BY_TYPE[type];
     try {
-      synth.volume.rampTo(
-        hovering ? ACTIVE_DB : SILENT_DB,
-        hovering ? 0.4 : 0.6,
-      );
+      if (hovering) {
+        if (Tone.context.state !== "running") {
+          Tone.start().then(() => synth.triggerAttack(note)).catch(() => {});
+          return;
+        }
+        synth.triggerAttack(note);
+      } else {
+        synth.triggerRelease(note);
+      }
     } catch {
       // ignore
     }

@@ -2,6 +2,7 @@
   "name": "tide",
   "version": "0.1.0",
   "private": true,
+  "description": "Tide — a small experiment in attention as aesthetic experience.",
   "scripts": {
     "dev": "next dev",
     "build": "next build",

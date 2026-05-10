@@ -15,17 +15,24 @@
 
 # production
 /build
+/dist
 
 # misc
 .DS_Store
 *.pem
+*.swp
+
+# IDE
+.vscode
+.idea
 
 # debug
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# local env files
+# local env files (CRITICAL — never commit API keys)
+.env
 .env*.local
 
 # vercel
@@ -34,3 +41,8 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# working files
+FIX_*.md
+TASK.md
+_archive_*.md

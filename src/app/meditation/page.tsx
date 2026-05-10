@@ -48,7 +48,7 @@ const FALLBACK_PARAMS: SoundscapeParams = {
   reverbDecay: 4,
   filterCutoff: 2000,
   targetVolume: -22,
-  fadeInDuration: 1,
+  fadeInDuration: 0.2,
 };
 
 export default function MeditationPage() {
@@ -262,8 +262,8 @@ export default function MeditationPage() {
           <motion.img
             src={`/calligraphy/${type}.png`}
             alt={typeInfo.chinese}
-            animate={{ opacity: [0.88, 1, 0.88] }}
-            transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+            animate={{ opacity: [0.78, 1, 0.78] }}
+            transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
             style={{
               width: "200px",
               height: "200px",
@@ -296,7 +296,7 @@ export default function MeditationPage() {
             <motion.p
               initial={{ opacity: 0 }}
               animate={{ opacity: 0.75 }}
-              transition={{ duration: 1.5, delay: 0, ease: "easeInOut" }}
+              transition={{ duration: 0.4, delay: 0, ease: "easeInOut" }}
               style={{
                 fontSize: "15px",
                 lineHeight: 1.9,
@@ -310,7 +310,7 @@ export default function MeditationPage() {
             <motion.p
               initial={{ opacity: 0 }}
               animate={{ opacity: 0.65 }}
-              transition={{ duration: 1.5, delay: 8, ease: "easeInOut" }}
+              transition={{ duration: 0.4, delay: 0, ease: "easeInOut" }}
               style={{
                 fontSize: "14px",
                 lineHeight: 1.9,
@@ -323,7 +323,7 @@ export default function MeditationPage() {
             <motion.p
               initial={{ opacity: 0 }}
               animate={{ opacity: 0.55 }}
-              transition={{ duration: 1.5, delay: 16, ease: "easeInOut" }}
+              transition={{ duration: 0.4, delay: 0, ease: "easeInOut" }}
               style={{
                 fontSize: "14px",
                 lineHeight: 1.9,
@@ -362,22 +362,23 @@ export default function MeditationPage() {
         aria-label="Continue"
         style={{
           position: "fixed",
-          bottom: "3rem",
-          right: "3rem",
-          fontSize: "18px",
+          bottom: "2.5rem",
+          right: "2.5rem",
+          fontSize: "1.5rem",
           color: "#1a1a1a",
-          opacity: 0.4,
+          opacity: 0.65,
           fontFamily: "inherit",
           padding: "8px",
           textDecoration: "none",
           transition: "opacity 600ms ease",
           cursor: "pointer",
+          zIndex: 10,
         }}
         onMouseEnter={(e) => {
-          e.currentTarget.style.opacity = "0.8";
+          e.currentTarget.style.opacity = "1";
         }}
         onMouseLeave={(e) => {
-          e.currentTarget.style.opacity = "0.4";
+          e.currentTarget.style.opacity = "0.65";
         }}
       >
         →

@@ -16,7 +16,7 @@ Each type has its own visual language, its own ambient soundscape, its own medit
 
 ## Why I made this
 
-I have ADHD. My attention has more often been called a problem than a particular kind of pattern. I made Tide for people whose minds run faster than they want them to, and for the question that follows: can the same AI tools that have been used to optimize and standardize attention also be used to honor its variety?
+My attention has more often been called a problem than a particular kind of pattern. I made Tide for people whose minds run faster than they want them to, and for the question that follows: can the same AI tools that have been used to optimize and standardize attention also be used to honor its variety?
 
 Tide is a sketch. It reads behavior as a stand-in for signals it cannot yet read directly. The next step, beyond this version, is to drive the same generative system from physiological or neural input — a direction with precedent in works like Lisa Park's *Eunoia* (2013), which used EEG to translate the artist's attention and meditation states into water-vibrating sound in real time.
 
